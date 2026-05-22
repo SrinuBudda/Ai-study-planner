@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Study Planner - Premium Student Dashboard</title>
+  
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Chart.js CDN for visual analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Authentication Screen (Gated Entry) -->
+  <div id="auth-container" class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-brand">
+          <div class="brand-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <span class="brand-name">StudyAI</span>
+        </div>
+        <p class="auth-subtitle">Your personalized AI study planner & syllabus tracker</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="auth-tab-login">Sign In</button>
+        <button class="auth-tab-btn" id="auth-tab-signup">Register</button>
+      </div>
+
+      <div class="auth-form-wrapper">
+        <!-- Login Form -->
+        <form id="auth-login-form" class="auth-form">
+          <div class="auth-input-group">
+            <label for="login-email">Email Address</label>
+            <div class="auth-input-wrapper">
+              <i class="fas fa-envelope"></i>
+              <input type="email" id="login-email" placeholder="e.g. student@study.com" required autocomplete="email">
+            </div>
+          </div>
+          <div class="auth-input-group">
+            <label for="login-password">Password</label>
+            <div class="auth-input-wrapper">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+          </div>
+          <div class="auth-btn-row">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+            <button type="button" class="btn btn-demo" id="auth-demo-btn"><i class="fas fa-magic"></i> Quick Demo Login</button>
+          </div>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="auth-signup-form" class="auth-form hidden">
+          <div class="auth-input-group">
+            <label for="signup-name">Full Name</label>
+            <div class="auth-input-wrapper">
+              <i class="fas fa-user"></i>
+              <input type="text" id="signup-name" placeholder="e.g. Jane Doe" required autocomplete="name">
+            </div>
+          </div>
+          <div class="auth-input-group">
+            <label for="signup-email">Email Address</label>
+            <div class="auth-input-wrapper">
+              <i class="fas fa-envelope"></i>
+              <input type="email" id="signup-email" placeholder="e.g. newstudent@study.com" required autocomplete="email">
+            </div>
+          </div>
+          <div class="auth-input-group">
+            <label for="signup-password">Password</label>
+            <div class="auth-input-wrapper">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="signup-password" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+            </div>
+          </div>
+          <div class="auth-btn-row">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Create Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container" id="main-app" style="display: none;">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <i class="fas fa-brain"></i>
+        </div>
+        <span class="brand-name">StudyAI</span>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="menu-item active">
+          <a href="#" data-view="dashboard">
+            <i class="fas fa-th-large"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" data-view="planner">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Study Planner</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" data-view="syllabus">
+            <i class="fas fa-tasks"></i>
+            <span>Syllabus Tracker</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" data-view="papers">
+            <i class="fas fa-file-pdf"></i>
+            <span>Previous Papers</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" data-view="analytics">
+            <i class="fas fa-chart-line"></i>
+            <span>Progress Analytics</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" data-view="notes">
+            <i class="fas fa-sticky-note"></i>
+            <span>Notes Section</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" data-view="examspace">
+            <i class="fas fa-vial"></i>
+            <span>Exam Space</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="#" data-view="settings">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div class="sidebar-footer">
+        <div class="sidebar-profile">
+          <div class="profile-avatar" id="sidebar-user-avatar">S</div>
+          <div class="profile-info">
+            <span class="profile-name" id="sidebar-user-name">Student Account</span>
+            <span class="profile-role">Active Learner</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Navigation Header -->
+      <header class="top-nav">
+        <div class="nav-left">
+          <button class="menu-toggle" id="menu-toggle-btn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="page-title-display" id="header-page-title">Overview Dashboard</h2>
+        </div>
+        
+        <div class="nav-right">
+          <!-- Active Exam selection drop menu -->
+          <div class="exam-selector-header">
+            <select id="header-exam-selector" title="Select Target Exam">
+              <option value="jee">JEE Main / Adv</option>
+              <option value="neet">NEET UG</option>
+              <option value="gate">GATE CS</option>
+              <option value="upsc">UPSC Civil Services</option>
+              <option value="cds">CDS (Defence)</option>
+              <option value="nda">NDA (Defence)</option>
+              <option value="tgc">TGC (Technical Entry)</option>
+              <option value="lawyer">Lawyer Exams (CLAT)</option>
+              <option value="govt_eng">Govt Engineering Exams</option>
+              <option value="semester">Semester Exams</option>
+              <option value="placement">Placement Prep</option>
+              <option value="ssc">SSC CGL</option>
+              <option value="bank">Bank PO</option>
+              <option value="custom">Custom Exam</option>
+            </select>
+          </div>
+          
+          <!-- Theme toggle switches -->
+          <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">
+            <i class="fas fa-moon"></i>
+          </button>
+          
+          <button class="notifications-btn" onclick="document.getElementById('add-reminder-modal').classList.add('active')" title="Set Study Reminder">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEW: Home Dashboard Page -->
+      <section class="page-container active" id="dashboard-page">
+        <div class="dashboard-grid">
+          
+          <!-- Row 1: Widget Metrics cards -->
+          <div class="glass-card col-4 glass-card-hover-lift" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <h3 style="font-size:16px; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-graduation-cap" style="color:var(--accent-primary)"></i> Syllabus Completion
+              </h3>
+              <h2 id="dash-syllabus-percent" style="font-size:36px; font-family:'JetBrains Mono', monospace; color:var(--accent-primary); margin: 10px 0;">0%</h2>
+            </div>
+            <div>
+              <div style="background-color: var(--border-solid); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom:8px;">
+                <div id="dash-syllabus-progress-bar" style="background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); width: 0%; height: 100%; transition: width 0.4s ease;"></div>
+              </div>
+              <p id="dash-completed-topics-label" style="font-size:12px; color:var(--text-muted); font-weight:600;">0 of 0 Topics Completed</p>
+            </div>
+          </div>
+          
+          <div class="glass-card col-4 streak-card glass-card-hover-lift">
+            <div class="streak-text">
+              <h3>Daily Study Streak</h3>
+              <p>Keep the fire burning! Study daily to boost memory retention.</p>
+            </div>
+            <div class="streak-count" id="dash-study-streak">
+              0 Days <i class="fas fa-fire"></i>
+            </div>
+          </div>
+          
+          <div class="glass-card col-4 glass-card-hover-lift" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h3 style="font-size:16px; margin-bottom:4px;">Hours Studied</h3>
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Logged study focus hours</p>
+              <h2 id="dash-study-hours" style="font-size:36px; font-family:'JetBrains Mono', monospace; color:var(--accent-secondary);">0h</h2>
+            </div>
+            <button onclick="document.getElementById('quick-log-modal').classList.add('active')" class="btn btn-primary" style="padding:10px 14px; font-size:12px;">
+              <i class="fas fa-plus"></i> Log Study
+            </button>
+          </div>
+
+          <!-- Row 2: Widgets Grid -->
+          <!-- Left side widgets: targets & quotes -->
+          <div class="glass-card col-8">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+              <h3>Today's Study Targets</h3>
+              <span style="font-size:12px; color:var(--text-muted); font-weight:600;"><i class="fas fa-check-double"></i> Complete to log study time</span>
+            </div>
+            <div class="targets-list" id="today-targets-list">
+              <!-- Auto generated from active planner -->
+            </div>
+            
+            <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-glass); border-radius: var(--border-radius-md);">
+              <h4 style="font-size:12px; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.5px; margin-bottom:8px;"><i class="fas fa-quote-left"></i> Inspiration of the day</h4>
+              <p id="motivational-quote-text" style="font-style:italic; font-size:14.5px; line-height:1.5; color:var(--text-primary);">
+                "The secret of getting ahead is getting started." - Mark Twain
+              </p>
+            </div>
+          </div>
+
+          <!-- Right side widgets: timer & milestones -->
+          <div class="col-4" style="display:flex; flex-direction:column; gap:24px;">
+            
+            <!-- Exam countdown timer -->
+            <div class="glass-card countdown-widget">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                <h3 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-secondary);">Exam Countdown</h3>
+                <button id="edit-countdown-btn" class="action-icon-btn" title="Edit Exam Date" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; transition:color 0.2s;"><i class="fas fa-edit"></i></button>
+              </div>
+              <p id="countdown-exam-name" style="font-size:12px; color:var(--text-muted); font-weight:600; margin-bottom:10px;">Target Exam</p>
+              <div id="countdown-timer-widget">
+                <!-- Clock digits loaded via JS -->
+              </div>
+              <div id="countdown-edit-container" style="display:none; margin-top:10px; background:rgba(0,0,0,0.15); padding:10px; border-radius:8px; border:1px solid var(--border-solid);">
+                <label for="inline-exam-date" style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:5px;">Set Exam Date & Time:</label>
+                <div style="display:flex; gap:8px;">
+                  <input type="datetime-local" id="inline-exam-date" style="flex:1; background:var(--bg-primary); border:1px solid var(--border-solid); padding:4px 8px; border-radius:4px; color:var(--text-primary); font-size:12px;">
+                  <button id="save-countdown-btn" class="btn btn-primary" style="padding:4px 8px; font-size:11px;"><i class="fas fa-save"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pomodoro timer widget -->
+            <div class="glass-card pomodoro-card">
+              <h3 style="font-size:15px; margin-bottom:2px;"><i class="fas fa-hourglass-half" style="color:var(--accent-primary);"></i> Pomodoro Focus Timer</h3>
+              <span style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Interleave 25m work with 5m breaks</span>
+              <div class="timer-display" id="timer-clock-display">25:00</div>
+              <div class="timer-controls">
+                <button class="btn btn-primary" id="timer-start-btn"><i class="fas fa-play"></i> Start</button>
+                <button class="btn btn-warning" id="timer-pause-btn" style="display:none; background-color:var(--accent-warning); color:white;"><i class="fas fa-pause"></i> Pause</button>
+                <button class="btn btn-secondary" id="timer-reset-btn"><i class="fas fa-undo"></i> Reset</button>
+                <button class="btn btn-secondary" id="timer-mode-btn" style="font-size:12px; padding:8px 12px;"><i class="fas fa-mug-hot"></i> Switch to Break</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: AI study tips panel -->
+          <div class="glass-card col-12">
+            <h3><i class="fas fa-bolt" style="color:var(--accent-primary)"></i> AI Smart Recommendations & Study Tips</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Personalized optimization advice based on current study parameters.</p>
+            <div id="ai-tips-container" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+              <!-- Generated tips inside app.js -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- VIEW: Study Planner Page -->
+      <section class="page-container" id="planner-page">
+        <div class="dashboard-grid">
+          
+          <!-- Forecast details widget -->
+          <div class="col-12" id="planner-forecast-container">
+            <!-- Forecast loaded dynamically -->
+          </div>
+
+          <!-- Parameter Setup forms -->
+          <div class="glass-card col-4 planner-controls">
+            <h3>AI Planner Parameters</h3>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">Adjust options to let the AI balance study blocks, revisions, and breaks.</p>
+            
+            <div class="form-group">
+              <label for="daily-study-hours">Average Study Hours / Day</label>
+              <select id="daily-study-hours">
+                <option value="2">2 Hours</option>
+                <option value="3">3 Hours</option>
+                <option value="4" selected>4 Hours (Recommended)</option>
+                <option value="6">6 Hours</option>
+                <option value="8">8 Hours</option>
+              </select>
+            </div>
+            
+            <div class="form-group" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02); padding:12px; border-radius:var(--border-radius-md); border:1px solid var(--border-solid);">
+              <div>
+                <label style="margin-bottom:2px; font-size:13.5px;">Prioritize Weak Subjects</label>
+                <p style="font-size:10.5px; color:var(--text-muted); margin:0;">Allocate more blocks to Hard difficulty topics.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="prioritize-weak" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02); padding:12px; border-radius:var(--border-radius-md); border:1px solid var(--border-solid);">
+              <div>
+                <label style="margin-bottom:2px; font-size:13.5px;">Auto Scheduled Revisions</label>
+                <p style="font-size:10.5px; color:var(--text-muted); margin:0;">Include active spaced retrieval blocks daily.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="auto-revisions" checked disabled>
+                <span class="slider"></span>
+              </label>
+            </div>
+            
+            <button id="generate-plan-btn" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px;">
+              <i class="fas fa-magic"></i> Generate Study Schedule
+            </button>
+          </div>
+
+          <!-- Schedule Display -->
+          <div class="glass-card col-8" style="display:flex; flex-direction:column; gap:16px;">
+            <div class="schedule-header">
+              <h3 id="planner-schedule-title">Active Study Schedule</h3>
+              <div class="schedule-tabs">
+                <button class="schedule-tab-btn active" id="tab-weekly-btn">Weekly Grid</button>
+                <button class="schedule-tab-btn" id="tab-daily-btn">Daily Timeline</button>
+              </div>
+            </div>
+
+            <!-- TAB: Weekly Grid -->
+            <div class="schedule-grid" id="schedule-weekly-view">
+              <!-- Dynamically populated weekly columns -->
+            </div>
+
+            <!-- TAB: Daily Timeline -->
+            <div id="schedule-daily-view" style="display:none; flex-direction:column; gap:16px;">
+              <!-- Dynamically populated daily timelines -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- VIEW: Syllabus Tracker Page -->
+      <section class="page-container" id="syllabus-page">
+        <div class="syllabus-header-row">
+          <div>
+            <h3>Syllabus Completion Checklist</h3>
+            <p style="font-size:13px; color:var(--text-muted);">Tick topics off to record progress. The AI planner will update its schedules accordingly.</p>
+          </div>
+          <div class="syllabus-actions" style="display: flex; gap: 10px;">
+            <button id="configure-semester-btn" class="btn btn-secondary" style="display: none;">
+              <i class="fas fa-graduation-cap"></i> Configure Semester
+            </button>
+            <button onclick="SyllabusManager.showAddSubjectModal()" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Add Subject
+            </button>
+          </div>
+        </div>
+
+        <div class="syllabus-grid" id="syllabus-subjects-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW: Previous Year Papers Page -->
+      <section class="page-container" id="papers-page">
+        <div class="pyq-controls-header">
+          <div class="search-filter-wrapper">
+            <div class="search-input-container">
+              <i class="fas fa-search"></i>
+              <input type="text" id="pyq-search-input" placeholder="Search papers by exam or year..." class="form-group-input" style="padding: 10px 14px 10px 40px; border-radius: var(--border-radius-md); border:1px solid var(--border-solid); background-color: var(--bg-secondary); color: var(--text-primary);">
+            </div>
+            <div class="filter-select">
+              <select id="pyq-filter-exam" title="Filter by Exam">
+                <option value="all">All Exams</option>
+                <option value="jee">JEE</option>
+                <option value="neet">NEET</option>
+                <option value="gate">GATE</option>
+                <option value="upsc">UPSC</option>
+                <option value="cds">CDS</option>
+                <option value="nda">NDA</option>
+                <option value="tgc">TGC</option>
+                <option value="lawyer">Lawyer/CLAT</option>
+                <option value="govt_eng">Govt Eng</option>
+                <option value="semester">Semester</option>
+                <option value="placement">Placement</option>
+                <option value="ssc">SSC</option>
+                <option value="bank">Bank</option>
+              </select>
+            </div>
+            <div class="filter-select">
+              <select id="pyq-filter-year" title="Filter by Year">
+                <option value="all">All Years</option>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+          <button onclick="PapersManager.showUploadModal()" class="btn btn-primary">
+            <i class="fas fa-cloud-upload-alt"></i> Upload Paper
+          </button>
+        </div>
+
+        <div class="papers-list" id="pyq-papers-list">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </section>
+
+      <!-- VIEW: Progress Analytics Page -->
+      <section class="page-container" id="analytics-page">
+        <!-- Top Metrics row -->
+        <div class="analytics-metrics-grid">
+          <div class="glass-card metric-card">
+            <div class="metric-icon-box" style="background-color:rgba(99, 102, 241, 0.1); color:var(--accent-primary);"><i class="fas fa-fire"></i></div>
+            <div class="metric-info">
+              <h4>Study Streak</h4>
+              <span id="dash-study-streak-2">0 Days</span>
+            </div>
+          </div>
+          <div class="glass-card metric-card">
+            <div class="metric-icon-box" style="background-color:rgba(6, 182, 212, 0.1); color:var(--accent-secondary);"><i class="fas fa-clock"></i></div>
+            <div class="metric-info">
+              <h4>Total Focus Hours</h4>
+              <span id="dash-study-hours-2">0h</span>
+            </div>
+          </div>
+          <div class="glass-card metric-card">
+            <div class="metric-icon-box" style="background-color:rgba(16, 185, 129, 0.1); color:var(--accent-success);"><i class="fas fa-check-circle"></i></div>
+            <div class="metric-info">
+              <h4>Syllabus Covered</h4>
+              <span id="dash-syllabus-percent-2">0%</span>
+            </div>
+          </div>
+          <div class="glass-card metric-card">
+            <div class="metric-icon-box" style="background-color:rgba(239, 68, 68, 0.1); color:var(--accent-danger);"><i class="fas fa-file-alt"></i></div>
+            <div class="metric-info">
+              <h4>Mock Tests Set</h4>
+              <span id="dash-mock-tests-count">3 Tests</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Chart 1: Syllabus completion rate by subject -->
+          <div class="glass-card col-6 chart-card">
+            <h3>Syllabus Completion by Subject (%)</h3>
+            <div class="chart-container">
+              <canvas id="subject-completion-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Hours studied over last 7 days -->
+          <div class="glass-card col-6 chart-card">
+            <h3>Daily Study Log (Hours / Day)</h3>
+            <div class="chart-container">
+              <canvas id="study-hours-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: Exam Space Page -->
+      <section class="page-container" id="examspace-page">
+        <div class="exam-space-grid">
+          
+          <!-- Column 1: Configurator & active quiz (takes up col-8) -->
+          <div class="col-8">
+            
+            <!-- SUBVIEW 1: Setup Configurator -->
+            <div class="glass-card quiz-config-card" id="quiz-config-view">
+              <h3 style="font-size: 20px; margin-bottom: 8px;"><i class="fas fa-sliders-h" style="color:var(--accent-primary)"></i> Mock Test Configurator</h3>
+              <p style="font-size:13.5px; color:var(--text-muted); margin-bottom: 20px;">Design a mock exam to self-assess your preparation. The system prioritizes syllabus topics you have already completed.</p>
+              
+              <div id="quiz-completed-warning-box" style="margin-bottom: 20px;">
+                <!-- Filled dynamically by JS: warning or active status -->
+              </div>
+              
+              <div class="form-group">
+                <label style="font-weight: 600;">Select Subjects to Include</label>
+                <div class="subject-checkbox-group" id="quiz-subject-checkboxes">
+                  <!-- Generated dynamically based on current exam subjects -->
+                </div>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                <div class="form-group">
+                  <label for="quiz-question-count" style="font-weight:600;">Number of Questions</label>
+                  <select id="quiz-question-count" style="background:var(--bg-secondary); border:1px solid var(--border-solid); padding:10px; border-radius:var(--border-radius-sm); color:var(--text-primary); width:100%;">
+                    <option value="5">5 Questions (Quick Quiz)</option>
+                    <option value="10" selected>10 Questions (Standard)</option>
+                    <option value="20">20 Questions (In-depth)</option>
+                    <option value="30">30 Questions (Full Mock)</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="quiz-time-limit" style="font-weight:600;">Time Limit (Minutes)</label>
+                  <select id="quiz-time-limit" style="background:var(--bg-secondary); border:1px solid var(--border-solid); padding:10px; border-radius:var(--border-radius-sm); color:var(--text-primary); width:100%;">
+                    <option value="5">5 Minutes</option>
+                    <option value="10" selected>10 Minutes</option>
+                    <option value="20">20 Minutes</option>
+                    <option value="45">45 Minutes</option>
+                    <option value="90">90 Minutes</option>
+                  </select>
+                </div>
+              </div>
+              
+              <button id="start-mock-btn" class="btn btn-primary" style="width:100%; justify-content:center; padding:14px; font-size:15px; font-weight:600;">
+                <i class="fas fa-play-circle"></i> Start Simulated Exam
+              </button>
+            </div>
+            
+            <!-- SUBVIEW 2: Active Test Runner -->
+            <div class="glass-card" id="quiz-runner-view" style="display: none;">
+              <div class="quiz-header">
+                <div class="quiz-progress-wrapper">
+                  <div class="quiz-progress-info">
+                    <span id="quiz-progress-text">Question 1 of 10</span>
+                    <span id="quiz-progress-percent">10% Completed</span>
+                  </div>
+                  <div class="quiz-progress-bar">
+                    <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+                  </div>
+                </div>
+                <div class="quiz-timer" id="quiz-timer-display">
+                  <i class="far fa-clock"></i> <span id="quiz-timer-clock">10:00</span>
+                </div>
+              </div>
+              
+              <div class="question-card">
+                <span class="question-subject" id="runner-question-subject">Physics</span>
+                <div class="question-text" id="runner-question-text">Sample Question Text</div>
+                <div class="quiz-options-list" id="runner-options-list">
+                  <!-- Options cards inserted dynamically -->
+                </div>
+              </div>
+              
+              <div class="quiz-footer">
+                <button id="quiz-prev-btn" class="btn btn-secondary"><i class="fas fa-chevron-left"></i> Previous</button>
+                <div style="display:flex; gap:12px;">
+                  <button id="quiz-next-btn" class="btn btn-secondary">Next <i class="fas fa-chevron-right"></i></button>
+                  <button id="quiz-submit-btn" class="btn btn-primary" style="background-color:var(--accent-success); border-color:var(--accent-success); color:white; display:none;"><i class="fas fa-check-double"></i> Submit Test</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- SUBVIEW 3: Grading & Results Sheet -->
+            <div class="glass-card results-card" id="quiz-results-view" style="display: none;">
+              <h3 class="results-header-title">Exam Performance Summary</h3>
+              
+              <div class="results-score-circle">
+                <span class="results-score-percent" id="results-percentage">80%</span>
+                <span class="results-score-label">Final Score</span>
+              </div>
+              
+              <p class="results-summary-text" id="results-performance-message">Great effort! You show strong conceptual clarity.</p>
+              
+              <div class="results-stats-row">
+                <div class="results-stat-badge correct">
+                  <i class="fas fa-check"></i> <span id="results-correct-count">8 Correct</span>
+                </div>
+                <div class="results-stat-badge incorrect">
+                  <i class="fas fa-times"></i> <span id="results-incorrect-count">2 Incorrect</span>
+                </div>
+              </div>
+              
+              <div style="display:flex; justify-content:center; gap:16px;">
+                <button id="quiz-retake-btn" class="btn btn-primary"><i class="fas fa-redo"></i> Retake Test</button>
+                <button id="quiz-back-config-btn" class="btn btn-secondary"><i class="fas fa-sliders-h"></i> Configure New</button>
+              </div>
+              
+              <!-- Review and Explanations Sheet -->
+              <div class="review-sheet-container">
+                <h3 class="review-sheet-title"><i class="fas fa-poll-h" style="color:var(--accent-secondary)"></i> Question-by-Question Review</h3>
+                <div id="results-review-list">
+                  <!-- Detailed review items dynamic list -->
+                </div>
+              </div>
+            </div>
+            
+          </div>
+          
+          <!-- Column 2: Test History Sidebar (takes up col-4) -->
+          <div class="col-4">
+            <div class="glass-card" style="height:100%; display:flex; flex-direction:column;">
+              <h3 style="font-size: 16px; margin-bottom: 6px;"><i class="fas fa-history" style="color:var(--accent-secondary)"></i> Simulated Test History</h3>
+              <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Review your score logs and performance trends over time.</p>
+              
+              <div class="past-tests-list" id="quiz-history-list" style="flex-grow:1; overflow-y:auto; max-height: 480px; padding-right:4px;">
+                <!-- Populated via storage logs -->
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+
+      <!-- VIEW: Notes Page -->
+      <section class="page-container" id="notes-page">
+        <div class="glass-card notes-view-wrapper">
+          
+          <!-- Notes Sidebar List -->
+          <div class="notes-sidebar">
+            <button id="create-note-btn" class="btn btn-primary" style="width:100%; justify-content:center;">
+              <i class="fas fa-plus"></i> New Note
+            </button>
+            <input type="text" id="notes-search-input" placeholder="Search notes..." style="width:100%; background:var(--bg-primary); border:1px solid var(--border-solid); padding:8px 12px; border-radius:var(--border-radius-md); color:var(--text-primary); font-size:13px;">
+            <select id="notes-filter-subject" style="width:100%; background:var(--bg-primary); border:1px solid var(--border-solid); padding:8px; border-radius:var(--border-radius-md); color:var(--text-primary); font-size:13px;" title="Filter notes by subject">
+              <option value="all">All Subjects</option>
+            </select>
+            <div class="notes-list" id="notes-sidebar-list">
+              <!-- Dynamically populated notes entries -->
+            </div>
+          </div>
+
+          <!-- Notes Editor Panel -->
+          <div class="notes-editor-panel">
+            <div class="editor-header">
+              <input type="text" id="active-note-title-input" class="note-title-input" placeholder="Note Title">
+              
+              <div style="display:flex; align-items:center; gap:12px;">
+                <select id="active-note-subject-select" style="background:var(--bg-primary); border:1px solid var(--border-solid); padding:6px 12px; border-radius:var(--border-radius-md); color:var(--text-primary); font-size:13px;" title="Select note subject">
+                  <!-- Load subjects options -->
+                </select>
+                <button onclick="NotesManager.deleteNote()" class="action-icon-btn delete-btn" title="Delete Note" style="border: 1px solid var(--border-solid); padding: 8px; border-radius: 8px;">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-solid); padding-bottom:8px;">
+              <span id="editor-saving-status" style="font-size:11.5px; color:var(--text-muted); font-weight:600;">
+                <i class="fas fa-check" style="color:var(--accent-success)"></i> Saved
+              </span>
+              <span style="font-size:11px; color:var(--text-muted);">Autosaves as you type</span>
+            </div>
+
+            <div class="editor-body">
+              <textarea id="active-note-textarea" class="note-textarea" placeholder="Start typing notes here... You can write formulas, bullet points, summaries..."></textarea>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- VIEW: Settings Page -->
+      <section class="page-container" id="settings-page">
+        <div class="dashboard-grid">
+          
+          <div class="glass-card col-6">
+            <div class="settings-card-header">
+              <i class="fas fa-user-cog"></i>
+              <h3>User Configurations</h3>
+            </div>
+            <div class="settings-section">
+              <div class="settings-row">
+                <div class="settings-info">
+                  <h4>Target Examination</h4>
+                  <p>Change your global goal exam structure presets.</p>
+                </div>
+                <select id="settings-active-exam" style="background:var(--bg-primary); border:1px solid var(--border-solid); padding:8px 12px; border-radius:var(--border-radius-md); color:var(--text-primary); cursor:pointer;" title="Select target exam in settings">
+                  <option value="jee">JEE Main / Adv Preset</option>
+                  <option value="neet">NEET UG Preset</option>
+                  <option value="gate">GATE CS Preset</option>
+                  <option value="upsc">UPSC Prelims Preset</option>
+                  <option value="cds">CDS Exam Preset</option>
+                  <option value="nda">NDA Exam Preset</option>
+                  <option value="tgc">TGC Exam Preset</option>
+                  <option value="lawyer">Lawyer Exams Preset</option>
+                  <option value="govt_eng">Govt Engineering Exams Preset</option>
+                  <option value="semester">Semester Exams Preset</option>
+                  <option value="placement">Placement Prep Preset</option>
+                  <option value="ssc">SSC CGL Preset</option>
+                  <option value="bank">Bank PO Preset</option>
+                  <option value="custom">Custom Exam Preset</option>
+                </select>
+              </div>
+
+              <div class="settings-row">
+                <div class="settings-info">
+                  <h4>Exam Date & Time</h4>
+                  <p>Affects the countdown clock widget on your dashboard.</p>
+                </div>
+                <input type="datetime-local" id="settings-exam-date" style="background:var(--bg-primary); border:1px solid var(--border-solid); padding:8px; border-radius:var(--border-radius-md); color:var(--text-primary); cursor:pointer;">
+              </div>
+
+              <div class="settings-row">
+                <div class="settings-info">
+                  <h4>Timetable Hours Target</h4>
+                  <p>Preferred daily schedule study duration limits.</p>
+                </div>
+                <input type="number" id="settings-study-hours" min="1" max="16" style="width:70px; background:var(--bg-primary); border:1px solid var(--border-solid); padding:8px; border-radius:var(--border-radius-md); color:var(--text-primary); text-align:center;">
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card col-6">
+            <div class="settings-card-header">
+              <i class="fas fa-bell"></i>
+              <h3>Alerts & Sound Synthesis</h3>
+            </div>
+            <div class="settings-section">
+              <div class="settings-row">
+                <div class="settings-info">
+                  <h4>Focus Sound Alerts</h4>
+                  <p>Synthesize clean chimes using HTML5 Web Audio API at session end.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="settings-audio-alerts" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-row">
+                <div class="settings-info">
+                  <h4>Mock Notifications</h4>
+                  <p>Toggle display of reminders and custom mock test dates.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" checked disabled>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-row" style="margin-top: 20px; border-bottom:none; padding-bottom:0; display:flex; flex-wrap:wrap; gap:12px;">
+                <button onclick="AppManager.saveSettings()" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+                <button onclick="AppManager.logout()" class="btn btn-secondary" style="border:1px solid var(--accent-danger); color:var(--accent-danger);"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+                <button onclick="AppManager.resetAllData()" class="btn btn-danger" style="background-color:var(--accent-danger); color:white;"><i class="fas fa-exclamation-triangle"></i> Reset All Data</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ================= MODALS SECTION ================= -->
+  
+  <!-- MODAL: Semester Setup Wizard -->
+  <div class="modal" id="semester-setup-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Configure Semester Syllabus</h3>
+        <button class="modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="semester-setup-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="semester-branch-select">Engineering Branch / Department</label>
+            <select id="semester-branch-select">
+              <option value="cse">Computer Science & Engineering (CSE)</option>
+              <option value="ece">Electronics & Communication Engineering (ECE)</option>
+              <option value="eee">Electrical & Electronics Engineering (EEE)</option>
+              <option value="me">Mechanical Engineering (ME)</option>
+              <option value="ce">Civil Engineering (CE)</option>
+              <option value="custom">Custom Branch / Specialization</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="semester-number-group">
+            <label for="semester-number-select">Semester</label>
+            <select id="semester-number-select">
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4" selected>Semester 4</option>
+              <option value="5">Semester 5</option>
+              <option value="6">Semester 6</option>
+              <option value="7">Semester 7</option>
+              <option value="8">Semester 8</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="semester-setup-method">Setup Method</label>
+            <select id="semester-setup-method">
+              <option value="standard" selected>Use Standard Curriculum Presets</option>
+              <option value="custom">Enter Custom Subject List</option>
+            </select>
+          </div>
+
+          <div class="form-group hidden" id="semester-custom-input-group">
+            <label for="semester-custom-subjects">Custom Subject Names (comma separated)</label>
+            <textarea id="semester-custom-subjects" placeholder="e.g. Machine Learning, Cloud Computing, Web Tech" rows="3"></textarea>
+            <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:6px;">Each subject will be initialized with Easy, Medium, and Hard progress-tracking topics.</span>
+          </div>
+
+          <div class="alert-info" style="margin-top: 15px; padding: 12px; background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--border-radius-sm); font-size: 12.5px; color: var(--text-primary); display: flex; gap: 10px; align-items: flex-start;">
+            <i class="fas fa-exclamation-triangle" style="color:var(--accent-primary); margin-top: 2px;"></i>
+            <span><strong>Warning:</strong> Reconfiguring your semester will reset your current semester syllabus checklist. This action cannot be undone.</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="semester-generate-btn">Generate & Start Planning</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Subject -->
+  <div class="modal" id="add-subject-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add New Subject</h3>
+        <button class="modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="add-subject-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="new-subject-name">Subject Name</label>
+            <input type="text" id="new-subject-name" placeholder="e.g. Inorganic Chemistry, Discrete Mathematics" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Subject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Topic -->
+  <div class="modal" id="add-topic-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add Study Topic</h3>
+        <button class="modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="add-topic-form">
+        <input type="hidden" id="topic-subject-idx">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="new-topic-name">Topic Description</label>
+            <input type="text" id="new-topic-name" placeholder="e.g. Integration by parts, Neural Network Architectures" required>
+          </div>
+          <div class="form-group">
+            <label for="new-topic-difficulty">Topic Difficulty</label>
+            <select id="new-topic-difficulty">
+              <option value="Easy">Easy</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Topic</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Study Reminder -->
+  <div class="modal" id="add-reminder-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create Milestone Reminder</h3>
+        <button class="modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="add-reminder-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="rem-title">Reminder Goal Title</label>
+            <input type="text" id="rem-title" placeholder="e.g. UPSC GS-1 Mock Exam, Organic Chem Formulas Rev" required>
+          </div>
+          <div class="form-group">
+            <label for="rem-type">Reminder Type</label>
+            <select id="rem-type">
+              <option value="mock" selected>Mock Test</option>
+              <option value="revision">Active Revision</option>
+              <option value="deadline">Task Deadline</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="rem-datetime">Target Date & Time</label>
+            <input type="datetime-local" id="rem-datetime" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Schedule Reminder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Upload Question Paper -->
+  <div class="modal" id="upload-paper-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Upload PYQ Question Paper</h3>
+        <button class="modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="pyq-upload-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="pyq-upload-title">Document Title</label>
+            <input type="text" id="pyq-upload-title" placeholder="e.g. GATE CS 2024 Question Paper - Solved" required>
+          </div>
+          <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label for="pyq-upload-exam">Category Exam</label>
+              <select id="pyq-upload-exam">
+                <option value="jee">JEE</option>
+                <option value="neet">NEET</option>
+                <option value="gate">GATE</option>
+                <option value="upsc">UPSC</option>
+                <option value="cds">CDS</option>
+                <option value="nda">NDA</option>
+                <option value="tgc">TGC</option>
+                <option value="lawyer">Lawyer/CLAT</option>
+                <option value="govt_eng">Govt Eng</option>
+                <option value="semester">Semester</option>
+                <option value="placement">Placement</option>
+                <option value="ssc">SSC</option>
+                <option value="bank">Bank</option>
+              </select>
+            </div>
+            <div>
+              <label for="pyq-upload-year">Exam Year</label>
+              <input type="number" id="pyq-upload-year" min="2000" max="2030" value="2025" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Select PDF File</label>
+            <input type="file" id="pyq-file-input" accept=".pdf" style="display:none;">
+            <div class="upload-dropzone" id="upload-dropzone">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <h4 style="margin-top:8px;">Drag & Drop or Click to Browse</h4>
+              <p style="font-size:12px; color:var(--text-muted);">Support PDF documents up to 10 MB</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Paper</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PDF Simulated Reader View -->
+  <div class="modal" id="pdf-viewer-modal">
+    <div class="modal-content" style="max-width: 750px; width: 90%;">
+      <div class="modal-header">
+        <h3 id="viewer-paper-title">Question Paper Reader</h3>
+        <button class="modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="max-height: 480px; overflow-y: auto; background-color: var(--bg-primary); border-radius: var(--border-radius-sm); margin: 20px; padding: 20px;">
+        <div id="viewer-pdf-mock-content">
+          <!-- Dynamically populated mock paper PDF contents -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-cancel">Close Document</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Quick Study Session Log -->
+  <div class="modal" id="quick-log-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Log Offline Study Time</h3>
+        <button class="modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="quick-study-log-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="log-study-minutes">Minutes Studied</label>
+            <input type="number" id="log-study-minutes" min="5" max="600" value="60" required>
+            <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:6px;">Log offline study sessions directly to progress graphs.</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Log Session</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOADING ================= -->
+  <!-- Seed configurations first -->
+  <script src="js/db.js"></script>
+  <!-- UI Components / Managers -->
+  <script src="js/reminders.js"></script>
+  <script src="js/syllabus.js"></script>
+  <script src="js/planner.js"></script>
+  <script src="js/papers.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/examspace.js"></script>
+  <!-- Main Coordinator last -->
+  <script src="js/app.js"></script>
+
+</body>
+</html>
