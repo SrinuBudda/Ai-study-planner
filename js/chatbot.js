@@ -15,9 +15,14 @@ const ChatbotManager = {
     const form = document.getElementById("chatbot-input-form");
     if (form) {
       form.addEventListener("submit", (e) => {
+        console.log("[Chatbot Event] Form submit event captured. Preventing default/propagation.");
         e.preventDefault();
+        e.stopPropagation();
         this.handleUserSubmit();
+        return false;
       });
+    } else {
+      console.warn("[Chatbot System] Form element '#chatbot-input-form' not found.");
     }
 
     const clearBtn = document.getElementById("chatbot-clear-history-btn");
@@ -38,11 +43,17 @@ const ChatbotManager = {
       });
 
       input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
+        const isEnter = e.key === "Enter" || e.keyCode === 13 || e.which === 13;
+        if (isEnter && !e.shiftKey) {
+          console.log(`[Chatbot Event] Enter key keydown event captured in textarea (key=${e.key}, code=${e.keyCode}). Preventing default/propagation.`);
           e.preventDefault();
+          e.stopPropagation();
           this.handleUserSubmit();
+          return false;
         }
       });
+    } else {
+      console.warn("[Chatbot System] Input textarea '#chatbot-user-input' not found.");
     }
   },
 
@@ -176,16 +187,29 @@ const ChatbotManager = {
   },
 
   async handleUserSubmit() {
-    if (this.isLoading) return;
+    if (this.isLoading) {
+      console.log("[Chatbot Info] Submissions blocked. Chatbot is currently loading a response.");
+      return;
+    }
 
     const input = document.getElementById("chatbot-user-input");
-    if (!input || !input.value.trim()) return;
+    if (!input || !input.value.trim()) {
+      console.log("[Chatbot Info] Submissions aborted. Input is empty or undefined.");
+      return;
+    }
 
     const text = input.value.trim();
+    console.log(`[Chatbot Action] sendMessage() executed. Message length: ${text.length} chars. Text snippet: "${text.substring(0, 30)}..."`);
+    
     input.value = "";
     input.style.height = "auto"; // Reset height on submit
 
     const activeExam = window.AppManager.activeExam;
+
+    // Safety fallback initialization
+    if (!this.chatLogs) {
+      this.chatLogs = [];
+    }
 
     // Append User Message
     this.chatLogs.push({
@@ -198,6 +222,7 @@ const ChatbotManager = {
 
     // Sync user message to MySQL
     if (window.ApiClient && window.ApiClient.isActive) {
+      console.log("[Chatbot API] Syncing user message to MySQL chatbot_logs...");
       window.ApiClient.saveChatMessage(activeExam, "user", text);
     }
 
@@ -209,9 +234,13 @@ const ChatbotManager = {
 
     try {
       if (window.ApiClient && window.ApiClient.isActive) {
+        console.log(`[Chatbot API] Routing request to Gemini API backend at /api/chatbot/ask. History size: ${this.chatLogs.length} messages.`);
         const result = await window.ApiClient.askAI(this.chatLogs);
+        console.log("[Chatbot API] Backend response received:", result);
+        
         if (result && result.success) {
           if (result.isFallback) {
+            console.warn("[Chatbot API] Server reported fallback mode (GEMINI_API_KEY missing).");
             if (!this.fallbackWarningShown) {
               window.ReminderManager.showToast(
                 "Offline Mode",
@@ -225,12 +254,15 @@ const ChatbotManager = {
             useFallback = false;
           }
         }
+      } else {
+        console.log("[Chatbot API] Client is running in API-disabled local mode.");
       }
     } catch (err) {
-      console.warn("Error querying Gemini API. Using local fallback:", err);
+      console.error("[Chatbot Error] Failed to fetch response from Gemini API proxy. Error:", err);
     }
 
     if (useFallback) {
+      console.log("[Chatbot Info] Resolving request using offline rule-based knowledge model.");
       response = this.generateResponse(text);
       if (!window.ApiClient || !window.ApiClient.isActive) {
         if (!this.offlineWarningShown) {
@@ -256,7 +288,14 @@ const ChatbotManager = {
 
     // Sync assistant response to MySQL
     if (window.ApiClient && window.ApiClient.isActive) {
+      console.log("[Chatbot API] Syncing assistant response to MySQL chatbot_logs...");
       window.ApiClient.saveChatMessage(activeExam, "assistant", response);
+    }
+
+    // Focus input automatically after response
+    if (input) {
+      console.log("[Chatbot Action] Refocusing input textarea.");
+      input.focus();
     }
   },
 

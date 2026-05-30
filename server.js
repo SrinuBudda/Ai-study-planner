@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -11,6 +12,16 @@ const PORT = process.env.PORT || 3000;
 // Enable CORS and body parsers
 app.use(cors());
 app.use(express.json());
+
+// Request Logging Middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[API Log] ${new Date().toISOString()} | ${req.method} ${req.originalUrl} | Status: ${res.statusCode} | Duration: ${duration}ms | IP: ${req.ip}`);
+  });
+  next();
+});
 
 // Serve static frontend files from workspace root
 app.use(express.static(__dirname));
@@ -27,16 +38,59 @@ const dbConfig = {
 // Create MySQL Connection Pool
 const pool = mysql.createPool(dbConfig);
 const promisePool = pool.promise();
-
-// Check MySQL Connection Status on Startup
+// Check MySQL Connection Status and Bootstrap Schema on Startup
 async function checkDatabaseConnection() {
   try {
     const [rows] = await promisePool.query('SELECT 1');
-    console.log('✅ MySQL Database Connected successfully!');
+    console.log('✅ [Database Log] MySQL Database Connected successfully!');
+    
+    // Auto-create missing tables dynamically from schema.sql
+    await bootstrapDatabase();
+    
     await seedPapersTable();
   } catch (err) {
-    console.error('❌ MySQL Database Connection failed:', err.message);
-    console.warn('⚠️ Server is running in API-disabled fallback mode. Please start MySQL and create the database.');
+    console.error('❌ [Database Error] MySQL Database Connection failed:', err.message || err.code || err);
+    console.warn('⚠️ [Database Warning] Server is running in API-disabled fallback mode. Please start MySQL and create the database.');
+  }
+}
+
+async function bootstrapDatabase() {
+  try {
+    const schemaPath = path.join(__dirname, 'schema.sql');
+    if (fs.existsSync(schemaPath)) {
+      const sqlContent = fs.readFileSync(schemaPath, 'utf8');
+      
+      const statements = sqlContent
+        .split(';')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      console.log(`[Database Log] Verifying and auto-creating relational tables from schema.sql...`);
+      for (let statement of statements) {
+        statement = statement
+          .replace(/--.*$/gm, '') // Remove SQL comments
+          .replace(/\/\*[\s\S]*?\*\//g, '') // Remove SQL block comments
+          .trim();
+
+        if (statement.length === 0) continue;
+
+        const upperStmt = statement.toUpperCase();
+        if (upperStmt.startsWith('CREATE DATABASE') || upperStmt.startsWith('USE')) {
+          continue; 
+        }
+
+        try {
+          await promisePool.query(statement);
+        } catch (stmtErr) {
+          console.warn(`[Database Warning] Schema statement failed: "${statement.substring(0, 60)}...". Reason: ${stmtErr.message}`);
+        }
+      }
+      console.log('✅ [Database Log] Relational tables verified/created successfully!');
+    } else {
+      console.warn('[Database Warning] schema.sql file not detected in project root.');
+    }
+  } catch (err) {
+    console.error('❌ [Database Error] Procedural bootstrap failed:', err.message);
   }
 }
 
@@ -96,12 +150,15 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const [existing] = await promisePool.query('SELECT id FROM users WHERE email = ?', [email]);
     if (existing.length > 0) {
+      console.warn(`[Auth Warning] ${new Date().toISOString()} | Registration failed - Email already exists: ${email}`);
       return res.status(400).json({ success: false, message: 'Email address is already registered.' });
     }
 
     await promisePool.query('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, password]);
+    console.log(`[Auth Log] ${new Date().toISOString()} | User registered successfully. Name: ${name}, Email: ${email}`);
     res.json({ success: true, message: 'User account created successfully.' });
   } catch (err) {
+    console.error(`[Auth Error] ${new Date().toISOString()} | Database registration error: ${err.message}`);
     res.status(500).json({ success: false, message: 'Database registration error.', error: err.message });
   }
 });
@@ -116,15 +173,18 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const [rows] = await promisePool.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, password]);
     if (rows.length === 0) {
+      console.warn(`[Auth Warning] ${new Date().toISOString()} | Login failed for email: ${email}`);
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
     const user = rows[0];
+    console.log(`[Auth Log] ${new Date().toISOString()} | User logged in successfully. ID: ${user.id}, Email: ${user.email}`);
     res.json({
       success: true,
       user: { id: user.id, name: user.name, email: user.email }
     });
   } catch (err) {
+    console.error(`[Auth Error] ${new Date().toISOString()} | Database login error: ${err.message}`);
     res.status(500).json({ success: false, message: 'Database login error.', error: err.message });
   }
 });
@@ -376,6 +436,209 @@ app.post('/api/papers/download', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to increment download count.', details: err.message });
   }
+});
+
+// 9. CHATBOT GEMINI INTEGRATION ROUTE
+app.post('/api/chatbot/ask', async (req, res) => {
+  const { history } = req.body;
+  if (!history || !Array.isArray(history)) {
+    return res.status(400).json({ success: false, message: 'Message history array is required.' });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey.trim() === "") {
+    console.warn("⚠️ GEMINI_API_KEY is not set. Chatbot is running in mock fallback mode.");
+    return res.json({ success: true, isFallback: true });
+  }
+
+  try {
+    // Map history to Gemini API format
+    const contents = history.map(msg => {
+      const role = msg.sender === 'user' ? 'user' : 'model';
+      return {
+        role: role,
+        parts: [{ text: msg.text }]
+      };
+    });
+
+    const systemInstructionText = "You are StudyAI, a premium conversational AI Study Assistant and academic coach. " +
+      "Help the student clarify academic questions, explain complex concepts with structured clear formatting and examples, " +
+      "or write mock practice questions when requested. Maintain a motivating, supportive, and pedagogical tone. " +
+      "Keep answers concise but comprehensive, using markdown lists or bold markers where helpful. " +
+      "If the user asks follow-up questions, refer to your previous context in the conversation history. " +
+      "Limit your responses to academic subjects, study strategy guides, schedules, and career advice.";
+
+    const payload = {
+      contents: contents,
+      systemInstruction: {
+        parts: [{ text: systemInstructionText }]
+      }
+    };
+
+    // Make request directly to Gemini API
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Gemini API returned status ${response.status}: ${errText}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+      const reply = data.candidates[0].content.parts[0].text;
+      
+      // Log request & response size to console for debugging
+      console.log(`🤖 Gemini API Query Succeeded. History Size: ${history.length} messages. Reply Size: ${reply.length} chars.`);
+      
+      return res.json({ success: true, text: reply });
+    } else {
+      throw new Error('Invalid response structure from Gemini API');
+    }
+
+  } catch (err) {
+    console.error("❌ Gemini API query error:", err.message);
+    res.status(500).json({ success: false, message: 'AI model request failed. Falling back to local offline model.', error: err.message });
+  }
+});
+
+// 10. EXAMSPACE: Fetch and Save Simulated Mock Test Results
+app.get('/api/examspace/:exam', async (req, res) => {
+  const { exam } = req.params;
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: 'User ID is required.' });
+
+  try {
+    const [rows] = await promisePool.query(
+      'SELECT id, exam_key as exam, subjects, question_count as questionCount, correct_count as correctCount, incorrect_count as incorrectCount, score_percent as scorePercent, duration_minutes as durationMinutes, time_taken_seconds as timeTakenSeconds, difficulty, subject_analysis as subjectAnalysis, recommendations, timestamp FROM mock_tests WHERE user_id = ? AND exam_key = ? ORDER BY timestamp DESC',
+      [userId, exam]
+    );
+    
+    const attempts = rows.map(r => {
+      let subjectAnalysis = {};
+      let recommendations = {};
+      try {
+        subjectAnalysis = r.subjectAnalysis ? JSON.parse(r.subjectAnalysis) : {};
+      } catch (e) {}
+      try {
+        recommendations = r.recommendations ? JSON.parse(r.recommendations) : {};
+      } catch (e) {}
+      
+      let subjectsList = [];
+      if (r.subjects) {
+        subjectsList = r.subjects.split(',').map(s => s.trim());
+      }
+      
+      return {
+        ...r,
+        subjects: subjectsList,
+        subjectAnalysis,
+        recommendations
+      };
+    });
+    
+    res.json(attempts);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch mock tests history.', details: err.message });
+  }
+});
+
+app.post('/api/examspace/:exam', async (req, res) => {
+  const { exam } = req.params;
+  const { 
+    userId, 
+    subjects, 
+    questionCount, 
+    correctCount, 
+    incorrectCount, 
+    scorePercent, 
+    durationMinutes, 
+    timeTakenSeconds, 
+    difficulty, 
+    subjectAnalysis, 
+    recommendations 
+  } = req.body;
+
+  if (!userId || !subjects || questionCount === undefined) {
+    return res.status(400).json({ error: 'Required parameters missing.' });
+  }
+
+  const subjectsStr = Array.isArray(subjects) ? subjects.join(',') : subjects;
+  const subjectAnalysisStr = typeof subjectAnalysis === 'object' ? JSON.stringify(subjectAnalysis) : subjectAnalysis || '{}';
+  const recommendationsStr = typeof recommendations === 'object' ? JSON.stringify(recommendations) : recommendations || '{}';
+
+  try {
+    await promisePool.query(
+      'INSERT INTO mock_tests (user_id, exam_key, subjects, question_count, correct_count, incorrect_count, score_percent, duration_minutes, time_taken_seconds, difficulty, subject_analysis, recommendations) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        userId, 
+        exam, 
+        subjectsStr, 
+        questionCount, 
+        correctCount, 
+        incorrectCount, 
+        scorePercent, 
+        durationMinutes, 
+        timeTakenSeconds, 
+        difficulty, 
+        subjectAnalysisStr, 
+        recommendationsStr
+      ]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save mock test attempt.', details: err.message });
+  }
+});
+
+app.delete('/api/examspace/:exam', async (req, res) => {
+  const { exam } = req.params;
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: 'User ID is required.' });
+
+  try {
+    await promisePool.query('DELETE FROM mock_tests WHERE user_id = ? AND exam_key = ?', [userId, exam]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear mock test history.', details: err.message });
+  }
+});
+
+// 11. HEALTH CHECK: Returns status of server, database, APIs, and AI integrations
+app.get('/health', async (req, res) => {
+  let dbStatus = "DISCONNECTED";
+  let apiStatus = "FALLBACK";
+  
+  try {
+    const [rows] = await promisePool.query('SELECT 1');
+    dbStatus = "CONNECTED";
+    apiStatus = "ACTIVE";
+  } catch (err) {
+    dbStatus = `DISCONNECTED (${err.message || err.code || err})`;
+    apiStatus = "FALLBACK (mock data mode)";
+  }
+
+  const aiStatus = (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim() !== "") 
+    ? "AVAILABLE" 
+    : "FALLBACK (mock model)";
+
+  res.json({
+    serverStatus: "UP",
+    databaseStatus: dbStatus,
+    apiStatus: apiStatus,
+    aiServiceStatus: aiStatus,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Error Logging Middleware
+app.use((err, req, res, next) => {
+  console.error(`[Error Log] ${new Date().toISOString()} | Unhandled Error:`, err);
+  res.status(500).json({ error: 'Internal Server Error', details: err.message });
 });
 
 // Redirect any unmatched requests to the main app dashboard (Fallback routing)

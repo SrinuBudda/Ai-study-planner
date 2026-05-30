@@ -81,3 +81,23 @@ CREATE TABLE IF NOT EXISTS pyq_papers (
   downloads INT DEFAULT 0,
   file_url VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 8. Mock Tests History Table
+CREATE TABLE IF NOT EXISTS mock_tests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  exam_key VARCHAR(50) NOT NULL,
+  subjects TEXT NOT NULL,
+  question_count INT NOT NULL,
+  correct_count INT NOT NULL,
+  incorrect_count INT NOT NULL,
+  score_percent INT NOT NULL,
+  duration_minutes INT NOT NULL,
+  time_taken_seconds INT NOT NULL,
+  difficulty VARCHAR(20) NOT NULL,
+  subject_analysis TEXT NOT NULL,
+  recommendations TEXT NOT NULL,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

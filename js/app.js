@@ -476,6 +476,7 @@ const AppManager = {
 
       link.addEventListener('click', (e) => {
         e.preventDefault();
+        console.log(`[Navigation Log] Switching active view from ${this.activeView} to ${view}`);
         
         // Remove active class from all items
         menuItems.forEach(i => i.classList.remove('active'));

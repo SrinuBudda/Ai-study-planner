@@ -529,33 +529,64 @@
               <div id="quiz-completed-warning-box" style="margin-bottom: 20px;">
                 <!-- Filled dynamically by JS: warning or active status -->
               </div>
+
+              <div class="form-group" style="margin-bottom: 20px;">
+                <label for="quiz-exam-select" style="font-weight:600;">Select Exam</label>
+                <select id="quiz-exam-select" style="background:var(--bg-secondary); border:1px solid var(--border-solid); padding:10px; border-radius:var(--border-radius-sm); color:var(--text-primary); width:100%;">
+                  <option value="upsc">UPSC</option>
+                  <option value="ssc_cgl">SSC CGL</option>
+                  <option value="ssc_chsl">SSC CHSL</option>
+                  <option value="bank">Banking</option>
+                  <option value="railway">Railway</option>
+                  <option value="state_psc">State PSC</option>
+                  <option value="jee">JEE</option>
+                  <option value="neet">NEET</option>
+                  <option value="gate">GATE</option>
+                  <option value="cat">CAT</option>
+                  <option value="cs">Computer Science</option>
+                  <option value="custom" selected>Custom Exam</option>
+                </select>
+              </div>
               
-              <div class="form-group">
-                <label style="font-weight: 600;">Select Subjects to Include</label>
-                <div class="subject-checkbox-group" id="quiz-subject-checkboxes">
-                  <!-- Generated dynamically based on current exam subjects -->
+              <div class="form-group" style="margin-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                  <label style="font-weight: 600; margin:0;">Select Subjects to Include</label>
+                  <button type="button" id="quiz-select-all-btn" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; height: fit-content; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass);">Select All</button>
+                </div>
+                <div id="quiz-subject-checkboxes" style="display:flex; flex-direction:column; gap:8px;">
+                  <!-- Generated dynamically based on selected exam subjects -->
                 </div>
               </div>
               
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 24px;">
                 <div class="form-group">
                   <label for="quiz-question-count" style="font-weight:600;">Number of Questions</label>
                   <select id="quiz-question-count" style="background:var(--bg-secondary); border:1px solid var(--border-solid); padding:10px; border-radius:var(--border-radius-sm); color:var(--text-primary); width:100%;">
-                    <option value="5">5 Questions (Quick Quiz)</option>
-                    <option value="10" selected>10 Questions (Standard)</option>
-                    <option value="20">20 Questions (In-depth)</option>
-                    <option value="30">30 Questions (Full Mock)</option>
+                    <option value="10" selected>10 Questions</option>
+                    <option value="25">25 Questions</option>
+                    <option value="50">50 Questions</option>
+                    <option value="75">75 Questions</option>
+                    <option value="100">100 Questions</option>
                   </select>
                 </div>
                 
                 <div class="form-group">
-                  <label for="quiz-time-limit" style="font-weight:600;">Time Limit (Minutes)</label>
+                  <label for="quiz-time-limit" style="font-weight:600;">Duration</label>
                   <select id="quiz-time-limit" style="background:var(--bg-secondary); border:1px solid var(--border-solid); padding:10px; border-radius:var(--border-radius-sm); color:var(--text-primary); width:100%;">
-                    <option value="5">5 Minutes</option>
-                    <option value="10" selected>10 Minutes</option>
-                    <option value="20">20 Minutes</option>
-                    <option value="45">45 Minutes</option>
-                    <option value="90">90 Minutes</option>
+                    <option value="10" selected>10 min</option>
+                    <option value="20">20 min</option>
+                    <option value="30">30 min</option>
+                    <option value="60">60 min</option>
+                    <option value="120">120 min</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="quiz-difficulty" style="font-weight:600;">Difficulty</label>
+                  <select id="quiz-difficulty" style="background:var(--bg-secondary); border:1px solid var(--border-solid); padding:10px; border-radius:var(--border-radius-sm); color:var(--text-primary); width:100%;">
+                    <option value="Easy">Easy</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Hard">Hard</option>
                   </select>
                 </div>
               </div>
@@ -567,7 +598,7 @@
             
             <!-- SUBVIEW 2: Active Test Runner -->
             <div class="glass-card" id="quiz-runner-view" style="display: none;">
-              <div class="quiz-header">
+              <div class="quiz-header" style="margin-bottom:15px;">
                 <div class="quiz-progress-wrapper">
                   <div class="quiz-progress-info">
                     <span id="quiz-progress-text">Question 1 of 10</span>
@@ -581,6 +612,14 @@
                   <i class="far fa-clock"></i> <span id="quiz-timer-clock">10:00</span>
                 </div>
               </div>
+
+              <!-- Question Navigation Grid -->
+              <div class="quiz-nav-grid-container" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-glass); padding-bottom: 15px;">
+                <label style="font-size:12px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:8px;">Question Navigator</label>
+                <div class="quiz-nav-grid" id="quiz-nav-grid" style="display:flex; flex-wrap:wrap; gap:8px;">
+                  <!-- Question squares generated dynamically: 1, 2, 3... -->
+                </div>
+              </div>
               
               <div class="question-card">
                 <span class="question-subject" id="runner-question-subject">Physics</span>
@@ -590,8 +629,9 @@
                 </div>
               </div>
               
-              <div class="quiz-footer">
+              <div class="quiz-footer" style="display:flex; justify-content:space-between; align-items:center;">
                 <button id="quiz-prev-btn" class="btn btn-secondary"><i class="fas fa-chevron-left"></i> Previous</button>
+                <button id="quiz-mark-review-btn" class="btn btn-secondary" style="border-color:var(--accent-secondary); color:var(--accent-secondary); background:transparent;"><i class="far fa-bookmark"></i> Mark for Review</button>
                 <div style="display:flex; gap:12px;">
                   <button id="quiz-next-btn" class="btn btn-secondary">Next <i class="fas fa-chevron-right"></i></button>
                   <button id="quiz-submit-btn" class="btn btn-primary" style="background-color:var(--accent-success); border-color:var(--accent-success); color:white; display:none;"><i class="fas fa-check-double"></i> Submit Test</button>
@@ -603,23 +643,64 @@
             <div class="glass-card results-card" id="quiz-results-view" style="display: none;">
               <h3 class="results-header-title">Exam Performance Summary</h3>
               
-              <div class="results-score-circle">
+              <div class="results-score-circle" style="margin-bottom:15px;">
                 <span class="results-score-percent" id="results-percentage">80%</span>
                 <span class="results-score-label">Final Score</span>
               </div>
               
               <p class="results-summary-text" id="results-performance-message">Great effort! You show strong conceptual clarity.</p>
               
-              <div class="results-stats-row">
-                <div class="results-stat-badge correct">
-                  <i class="fas fa-check"></i> <span id="results-correct-count">8 Correct</span>
+              <div class="results-stats-row" style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-bottom: 25px;">
+                <div class="results-stat-badge" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-glass); text-align:center; padding:10px; border-radius:var(--border-radius-sm);">
+                  <span style="font-size:11px; color:var(--text-muted); display:block;">Total Questions</span>
+                  <span id="results-total-questions" style="font-weight:600; font-size:15px; display:block; margin-top:2px;">10</span>
                 </div>
-                <div class="results-stat-badge incorrect">
-                  <i class="fas fa-times"></i> <span id="results-incorrect-count">2 Incorrect</span>
+                <div class="results-stat-badge" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-glass); text-align:center; padding:10px; border-radius:var(--border-radius-sm);">
+                  <span style="font-size:11px; color:var(--text-muted); display:block;">Attempted</span>
+                  <span id="results-attempted-count" style="font-weight:600; font-size:15px; display:block; margin-top:2px;">10</span>
+                </div>
+                <div class="results-stat-badge correct" style="background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.1); text-align:center; padding:10px; border-radius:var(--border-radius-sm);">
+                  <span style="font-size:11px; color:var(--accent-success); display:block;">Correct</span>
+                  <span id="results-correct-count" style="font-weight:700; font-size:15px; display:block; margin-top:2px; color:var(--accent-success);">8</span>
+                </div>
+                <div class="results-stat-badge incorrect" style="background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.1); text-align:center; padding:10px; border-radius:var(--border-radius-sm);">
+                  <span style="font-size:11px; color:var(--accent-danger); display:block;">Incorrect</span>
+                  <span id="results-incorrect-count" style="font-weight:700; font-size:15px; display:block; margin-top:2px; color:var(--accent-danger);">2</span>
+                </div>
+              </div>
+
+              <!-- Time Taken Indicator -->
+              <div style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:25px;">
+                <i class="far fa-hourglass" style="margin-right:4px;"></i> Total Time Taken: <span id="results-time-taken" style="font-weight:600; color:var(--text-primary);">02:14</span>
+              </div>
+
+              <!-- Subject-wise Analysis & Strengths Section -->
+              <div class="analytics-section" style="margin-top: 25px; margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="results-card-subblock" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 15px; border-radius: var(--border-radius-md);">
+                  <h4 style="margin:0 0 12px 0; font-size:14px;"><i class="fas fa-chart-pie" style="color:var(--accent-primary);"></i> Subject Analysis</h4>
+                  <div id="results-subject-analysis-list" style="display:flex; flex-direction:column; gap:8px;">
+                    <!-- Filled dynamically -->
+                  </div>
+                </div>
+                
+                <div class="results-card-subblock" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 15px; border-radius: var(--border-radius-md);">
+                  <h4 style="margin:0 0 12px 0; font-size:14px;"><i class="fas fa-balance-scale" style="color:var(--accent-secondary);"></i> Performance Profile</h4>
+                  <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="font-size:12.5px;"><strong>Strengths:</strong> <span id="results-strengths-badge" style="color:var(--accent-success); font-weight:600;">None</span></div>
+                    <div style="font-size:12.5px; margin-top:8px;"><strong>Weaknesses:</strong> <span id="results-weaknesses-badge" style="color:var(--accent-danger); font-weight:600;">None</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AI Recommendations Section -->
+              <div class="results-card-subblock" style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); padding: 18px; border-radius: var(--border-radius-md); margin-bottom: 25px; text-align:left;">
+                <h4 style="margin:0 0 10px 0; font-size:14px; color:var(--accent-primary);"><i class="fas fa-brain"></i> StudyAI Personalized Recommendations</h4>
+                <div id="results-ai-recommendations" style="font-size:12.5px; line-height:1.6; color:var(--text-primary);">
+                  <!-- AI generated recommendations list -->
                 </div>
               </div>
               
-              <div style="display:flex; justify-content:center; gap:16px;">
+              <div style="display:flex; justify-content:center; gap:16px; margin-bottom:25px;">
                 <button id="quiz-retake-btn" class="btn btn-primary"><i class="fas fa-redo"></i> Retake Test</button>
                 <button id="quiz-back-config-btn" class="btn btn-secondary"><i class="fas fa-sliders-h"></i> Configure New</button>
               </div>
@@ -828,8 +909,8 @@
             </div>
             
             <form class="chatbot-input-area" id="chatbot-input-form">
-              <input type="text" id="chatbot-user-input" placeholder="Type your academic question or doubt here..." required autocomplete="off">
-              <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send</button>
+              <textarea id="chatbot-user-input" placeholder="Type your academic question or doubt here... (Enter to send, Shift+Enter for new line)" required rows="1" style="resize: none; max-height: 120px;"></textarea>
+              <button type="submit" class="btn btn-primary" style="height: fit-content; align-self: flex-end;"><i class="fas fa-paper-plane"></i> Send</button>
             </form>
           </div>
         </div>

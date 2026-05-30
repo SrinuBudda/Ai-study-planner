@@ -1,5 +1,20 @@
 // AI Study Planner - Exam Space Module
-// Handles simulated mock tests, custom tests based on syllabus completion, timers, and performance histories.
+// Handles simulated mock tests, custom tests based on syllabus completion, timers, navigators, and performance histories.
+
+const EXAM_SUBJECTS = {
+  "upsc": ["History", "Geography", "Polity", "Economy", "Environment", "Science & Technology", "Current Affairs"],
+  "ssc_cgl": ["Quantitative Aptitude", "Reasoning", "English", "General Awareness"],
+  "ssc_chsl": ["Quantitative Aptitude", "Reasoning", "English", "General Awareness"],
+  "bank": ["Quantitative Aptitude", "Reasoning", "English", "Banking Awareness", "Computer Aptitude"],
+  "railway": ["Mathematics", "General Intelligence & Reasoning", "General Science", "General Awareness"],
+  "state_psc": ["History", "Geography", "Polity", "State GK", "Environment", "Economy"],
+  "jee": ["Physics", "Chemistry", "Mathematics"],
+  "neet": ["Physics", "Chemistry", "Biology"],
+  "gate": ["Computer Science", "Engineering Mathematics", "General Aptitude"],
+  "cat": ["Quantitative Aptitude", "Data Interpretation & Logical Reasoning", "Verbal Ability & Reading Comprehension"],
+  "cs": ["Programming", "Data Structures", "DBMS", "Operating Systems", "Computer Networks", "Aptitude"],
+  "custom": ["General Studies", "General English", "Mathematics & Aptitude"]
+};
 
 const PRESEEDED_QUESTIONS = {
   "Physics": [
@@ -20,18 +35,6 @@ const PRESEEDED_QUESTIONS = {
       options: ["Photoelectric effect", "Compton scattering", "Interference", "Blackbody radiation"],
       answer: 2,
       explanation: "Interference and diffraction patterns are wave-specific behaviors that demonstrate the wave nature of light. The photoelectric effect and Compton scattering demonstrate the particle nature of light."
-    },
-    {
-      question: "What is the terminal velocity of a falling sphere of radius r in a viscous fluid proportional to (according to Stokes' Law)?",
-      options: ["r", "r²", "1/r", "r³"],
-      answer: 1,
-      explanation: "The drag force is F = 6πηrv. Setting gravity equal to drag plus buoyancy yields terminal velocity v_t proportional to the square of the radius (r²)."
-    },
-    {
-      question: "In thermodynamics, what remains constant during a perfect adiabatic process?",
-      options: ["Temperature", "Pressure", "Entropy", "Volume"],
-      answer: 2,
-      explanation: "A reversible adiabatic process is also isentropic, meaning entropy (S) remains constant throughout the system because no heat is exchanged (dQ = 0)."
     }
   ],
   "Chemistry": [
@@ -46,24 +49,6 @@ const PRESEEDED_QUESTIONS = {
       options: ["Decreasing the temperature", "Increasing the activation energy", "Decreasing the concentration of reactants", "Increasing the surface area of solid reactants"],
       answer: 3,
       explanation: "Increasing the surface area allows more reactant particles to collide simultaneously, increasing collision frequency and thus accelerating the reaction."
-    },
-    {
-      question: "What is the oxidation state of Chromium in Potassium Dichromate (K₂Cr₂O₇)?",
-      options: ["+3", "+4", "+5", "+6"],
-      answer: 3,
-      explanation: "In K₂Cr₂O₇, Potassium is +1 and Oxygen is -2. So, 2(+1) + 2(Cr) + 7(-2) = 0 => 2 + 2(Cr) - 14 = 0 => 2(Cr) = 12 => Cr = +6."
-    },
-    {
-      question: "Which element has the highest electronegativity value on the Pauling scale?",
-      options: ["Oxygen", "Fluorine", "Chlorine", "Helium"],
-      answer: 1,
-      explanation: "Fluorine is the most electronegative element on the periodic table, with a value of approximately 3.98 on the Pauling scale."
-    },
-    {
-      question: "What is the pH of a 1.0 x 10⁻³ M solution of a strong monoprotic acid?",
-      options: ["1.0", "3.0", "7.0", "11.0"],
-      answer: 1,
-      explanation: "For a strong monoprotic acid, [H⁺] is equal to the concentration of the acid. pH = -log[H⁺] = -log(10⁻³) = 3.0."
     }
   ],
   "Mathematics": [
@@ -78,24 +63,6 @@ const PRESEEDED_QUESTIONS = {
       options: ["2x2", "3x4", "4x3", "Matrix multiplication is undefined"],
       answer: 1,
       explanation: "The product of an m x n matrix and an n x p matrix is an m x p matrix. Since A is 3x2 and B is 2x4, the product AB is a 3x4 matrix."
-    },
-    {
-      question: "What is the value of the limit as x approaches 0 of sin(x) / x?",
-      options: ["0", "1", "Undefined", "Infinity"],
-      answer: 1,
-      explanation: "The limit of sin(x)/x as x approaches 0 is a fundamental trigonometric limit equal to 1, which can be proved geometrically or using L'Hopital's rule."
-    },
-    {
-      question: "What is the area bounded by the curve y = x², the x-axis, and the vertical lines x = 0 and x = 3?",
-      options: ["3", "6", "9", "27"],
-      answer: 2,
-      explanation: "Integrate x² from 0 to 3. Integral is [x³/3] evaluated from 0 to 3, which is (27/3) - 0 = 9."
-    },
-    {
-      question: "If two events A and B are independent, what is P(A ∩ B) equal to?",
-      options: ["P(A) + P(B)", "P(A) * P(B)", "P(A) | P(B)", "P(A) + P(B) - P(A ∩ B)"],
-      answer: 1,
-      explanation: "By definition, two events A and B are independent if and only if the probability of their intersection is the product of their individual probabilities: P(A ∩ B) = P(A) * P(B)."
     }
   ],
   "Biology": [
@@ -110,18 +77,6 @@ const PRESEEDED_QUESTIONS = {
       options: ["Thyroxine", "Insulin", "Adrenaline", "Estrogen"],
       answer: 1,
       explanation: "Insulin, secreted by the beta cells of the pancreas, helps lower blood glucose levels by facilitating the uptake of glucose into cells."
-    },
-    {
-      question: "What is the primary site of gaseous exchange in human lungs?",
-      options: ["Bronchi", "Trachea", "Alveoli", "Bronchioles"],
-      answer: 2,
-      explanation: "Alveoli are tiny air sacs at the end of the bronchioles where the lungs and the blood exchange oxygen and carbon dioxide during the process of breathing."
-    },
-    {
-      question: "Which nitrogenous base is present in RNA but absent in DNA?",
-      options: ["Adenine", "Thymine", "Uracil", "Cytosine"],
-      answer: 2,
-      explanation: "RNA contains Uracil (U) instead of Thymine (T), which is present in DNA. Both contain Adenine, Cytosine, and Guanine."
     }
   ],
   "Core Computer Science": [
@@ -136,18 +91,6 @@ const PRESEEDED_QUESTIONS = {
       options: ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
       answer: 1,
       explanation: "In a balanced BST, the height is logarithmic in terms of the number of nodes (h = log n). Worst-case search involves traversing from root to leaf, which takes O(log n) time."
-    },
-    {
-      question: "Which OSI model layer is responsible for logical addressing, routing, and path determination?",
-      options: ["Data Link Layer", "Network Layer", "Transport Layer", "Session Layer"],
-      answer: 1,
-      explanation: "The Network Layer (Layer 3) handles routing, IP addressing, and determining the optimal path of packets across networks."
-    },
-    {
-      question: "What is a process that has terminated but still has an entry in the process table called?",
-      options: ["Daemon process", "Orphan process", "Zombie process", "Thread process"],
-      answer: 2,
-      explanation: "A zombie process (or defunct process) is a process that has completed execution but still has an entry in the process table to allow the parent process to read its exit status."
     }
   ],
   "General Studies": [
@@ -162,124 +105,6 @@ const PRESEEDED_QUESTIONS = {
       options: ["Articles 14 to 18", "Articles 19 to 22", "Articles 25 to 28", "Article 32"],
       answer: 0,
       explanation: "Part III of the Constitution of India provides the Fundamental Rights. The Right to Equality is covered under Articles 14 to 18."
-    },
-    {
-      question: "What Repo Rate action does the RBI take to curb high inflation in the economy?",
-      options: ["Decrease the Repo Rate", "Increase the Repo Rate", "Keep Repo Rate unchanged", "Abolish the Repo Rate entirely"],
-      answer: 1,
-      explanation: "RBI increases the Repo Rate to curb inflation. This makes loans expensive for commercial banks, which raises interest rates for consumers, reducing money supply and cooling demand."
-    },
-    {
-      question: "Which of the following greenhouse gases has the highest global warming potential molecule-for-molecule?",
-      options: ["Carbon Dioxide (CO₂)", "Methane (CH₄)", "Nitrous Oxide (N₂O)", "Sulfur Hexafluoride (SF₆)"],
-      answer: 3,
-      explanation: "Molecule-for-molecule, SF₆ is the most potent greenhouse gas known, with a global warming potential 23,500 times greater than CO₂ over a 100-year period."
-    }
-  ],
-  "Mathematics & Aptitude": [
-    {
-      question: "If a work can be completed by 8 workers in 15 days, how many days will it take 12 workers to complete the same work?",
-      options: ["8 days", "10 days", "12 days", "14 days"],
-      answer: 1,
-      explanation: "Work is constant: Workers * Days = Constant. So, 8 * 15 = 120 man-days. If there are 12 workers: 120 / 12 = 10 days."
-    },
-    {
-      question: "A train 120 meters long passes a telegraph post in 6 seconds. What is the speed of the train in km/h?",
-      options: ["60 km/h", "72 km/h", "80 km/h", "90 km/h"],
-      answer: 1,
-      explanation: "Speed = Distance / Time = 120m / 6s = 20 m/s. To convert to km/h, multiply by 18/5: 20 * 18 / 5 = 72 km/h."
-    },
-    {
-      question: "The sum of the ages of a father and his son is 50 years. 5 years ago, the father's age was 7 times the son's age. What is the father's current age?",
-      options: ["35 years", "38 years", "40 years", "42 years"],
-      answer: 2,
-      explanation: "Let father's age be F and son's age be S. F + S = 50. 5 years ago: (F - 5) = 7(S - 5) => F - 5 = 7S - 35 => F = 7S - 30. Substitute F: 7S - 30 + S = 50 => 8S = 80 => S = 10. Thus, F = 40 years."
-    }
-  ],
-  "General": [
-    {
-      question: "Which of the following is a key element of effective, active study methods?",
-      options: ["Passive rereading", "Self-testing and active recall", "Highlighting full pages", "Cramming overnight"],
-      answer: 1,
-      explanation: "Self-testing and active recall force the brain to retrieve information, reinforcing neural pathways and significantly boosting long-term memory."
-    }
-  ],
-  "Legal Reasoning": [
-    {
-      question: "Under the Law of Torts, what is the principle of 'Strict Liability'?",
-      options: ["Liability regardless of fault or intention to cause harm", "Liability arising only when criminal intent is proven", "Liability limited to public servants while discharging duties", "Liability that can be transferred to a third party by contract"],
-      answer: 0,
-      explanation: "Strict liability is a standard for liability which may exist in either a civil or criminal context where a person is legally responsible for the consequences of an activity, regardless of fault or negligence."
-    },
-    {
-      question: "Which landmark judgment of the Supreme Court of India established the 'Basic Structure Doctrine' of the Constitution?",
-      options: ["Golaknath v. State of Punjab (1967)", "Kesavananda Bharati v. State of Kerala (1973)", "Maneka Gandhi v. Union of India (1978)", "Minerva Mills v. Union of India (1980)"],
-      answer: 1,
-      explanation: "The Basic Structure Doctrine was established by a 13-judge bench of the Supreme Court of India in Kesavananda Bharati v. State of Kerala (1973), ruling that Parliament cannot alter the basic features of the Constitution."
-    },
-    {
-      question: "What constitutes 'consensus ad idem' under the Indian Contract Act, 1872?",
-      options: ["Meeting of the minds on the same thing in the same sense", "Agreement without consideration being void", "An agreement signed by competent adults under duress", "Damages claimed due to breach of contract terms"],
-      answer: 0,
-      explanation: "Consensus ad idem is a Latin phrase meaning agreement or meeting of minds. Under Section 13 of the Indian Contract Act, 1872, two or more persons are said to consent when they agree upon the same thing in the same sense."
-    },
-    {
-      question: "Under Criminal Law, what is the legal definition of 'Culpable Homicide not amounting to Murder'?",
-      options: ["Causing death by negligence without any intention", "Causing death with intention or knowledge, but falling under statutory exceptions", "Accidental death caused during a lawful act", "Planned premeditated killing of a person in cold blood"],
-      answer: 1,
-      explanation: "Culpable Homicide not amounting to murder (Section 299 of IPC) is when death is caused with intention or knowledge, but is executed under sudden provocation, self-defense, or other exceptions outlined in Section 300."
-    }
-  ],
-  "Military GK": [
-    {
-      question: "Which of the following is the highest peacetime gallantry award in India?",
-      options: ["Param Vir Chakra", "Maha Vir Chakra", "Ashoka Chakra", "Shaurya Chakra"],
-      answer: 2,
-      explanation: "The Ashoka Chakra is India's highest peacetime military decoration awarded for valor, courageous action, or self-sacrifice away from the battlefield. Param Vir Chakra is the highest wartime gallantry award."
-    },
-    {
-      question: "What is the correct rank equivalence between the Indian Army, Navy, and Air Force for the rank of Army Captain?",
-      options: ["Navy Lieutenant / Air Force Flight Lieutenant", "Navy Commander / Air Force Wing Commander", "Navy Sub-Lieutenant / Air Force Flying Officer", "Navy Captain / Air Force Group Captain"],
-      answer: 0,
-      explanation: "An Army Captain is equivalent in rank structure to a Lieutenant in the Indian Navy and a Flight Lieutenant in the Indian Air Force."
-    },
-    {
-      question: "Which joint military exercise is conducted annually between India and France under the name 'Varuna'?",
-      options: ["Joint Air Force Exercise", "Joint Army Exercise", "Joint Naval Exercise", "Joint Special Forces Exercise"],
-      answer: 2,
-      explanation: "Varuna is the bilateral naval exercise conducted annually between the Indian Navy and the French Navy. Shakti is for the Army and Garuda is for the Air Force."
-    },
-    {
-      question: "What is the primary role of the Indian Army's 'Technical Graduate Course' (TGC) entry scheme?",
-      options: ["Direct recruitment of undergraduate medical cadets", "Commissioning engineering graduates as officers in technical arms/services", "Selecting high school students for NDA training modules", "Recruiting law graduates for the Judge Advocate General branch"],
-      answer: 1,
-      explanation: "The TGC is a direct entry scheme for engineering graduates to join the Indian Army as commissioned officers in the technical branches like Corps of Engineers, Signals, and EME."
-    }
-  ],
-  "General English": [
-    {
-      question: "Identify the correct option to fill in the blank: 'Neither the teacher nor the students ______ present in the library yesterday.'",
-      options: ["was", "were", "is", "are"],
-      answer: 1,
-      explanation: "When subjects are joined by 'neither... nor', the verb agrees with the closer subject. Since 'students' is plural and the sentence is in the past tense, 'were' is correct."
-    },
-    {
-      question: "Which of the following is the closest antonym for the word 'Ephemeral'?",
-      options: ["Transient", "Perpetual", "Evanescent", "Fugitive"],
-      answer: 1,
-      explanation: "Ephemeral means lasting for a very short time. The antonym is perpetual, which means lasting forever or for an indefinitely long time."
-    },
-    {
-      question: "Identify the error in the sentence: 'Each of the partners have submitted their respective progress reports to the board.'",
-      options: ["Each of the partners", "have submitted", "their respective", "to the board"],
-      answer: 1,
-      explanation: "'Each' is a singular pronoun and requires a singular verb. Therefore, 'have submitted' should be replaced with 'has submitted'."
-    },
-    {
-      question: "What is the meaning of the idiom 'To burn the candle at both ends'?",
-      options: ["To waste money on unnecessary luxuries", "To work extremely hard or be active day and night, risking exhaustion", "To perform a ritual to bring success in studies", "To criticize someone severely for their mistakes"],
-      answer: 1,
-      explanation: "Burning the candle at both ends means to exhaust oneself by working too hard, staying up late, and waking up early to work."
     }
   ]
 };
@@ -289,9 +114,13 @@ const ExamSpaceManager = {
     questions: [],
     currentIndex: 0,
     answers: {}, // questionIndex: selectedOptionIndex
+    markedForReview: {}, // questionIndex: boolean
+    visited: {}, // questionIndex: boolean
     timerRemaining: 0, // in seconds
     timerInterval: null,
-    totalDuration: 0 // in seconds
+    totalDuration: 0, // in seconds
+    difficulty: "Medium",
+    exam: "custom"
   },
   
   history: [],
@@ -316,6 +145,11 @@ const ExamSpaceManager = {
       nextBtn.addEventListener("click", () => this.nextQuestion());
     }
 
+    const markReviewBtn = document.getElementById("quiz-mark-review-btn");
+    if (markReviewBtn) {
+      markReviewBtn.addEventListener("click", () => this.toggleMarkForReview());
+    }
+
     const submitBtn = document.getElementById("quiz-submit-btn");
     if (submitBtn) {
       submitBtn.addEventListener("click", () => {
@@ -334,12 +168,43 @@ const ExamSpaceManager = {
     if (backConfigBtn) {
       backConfigBtn.addEventListener("click", () => this.resetToConfigurator());
     }
+
+    const examSelect = document.getElementById("quiz-exam-select");
+    if (examSelect) {
+      examSelect.addEventListener("change", () => {
+        this.renderSubjectsForExam(examSelect.value);
+        this.updateSyllabusCoverageWarning();
+      });
+    }
+
+    const selectAllBtn = document.getElementById("quiz-select-all-btn");
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener("click", () => this.toggleSelectAllSubjects());
+    }
   },
 
   loadExamSpace() {
+    const activeExam = window.AppManager.activeExam;
+    // Map application global active exam mapping
+    const dropdownExamVal = this.mapGlobalExamToLocalDropdown(activeExam);
+    
+    const examSelect = document.getElementById("quiz-exam-select");
+    if (examSelect) {
+      examSelect.value = dropdownExamVal;
+    }
+
+    this.renderSubjectsForExam(dropdownExamVal);
     this.loadHistory();
-    this.renderConfigurator();
+    this.updateSyllabusCoverageWarning();
     this.resetToConfigurator();
+  },
+
+  mapGlobalExamToLocalDropdown(examKey) {
+    const valid = ["upsc", "ssc_cgl", "ssc_chsl", "bank", "railway", "state_psc", "jee", "neet", "gate", "cat", "cs", "custom"];
+    if (valid.includes(examKey)) return examKey;
+    if (examKey === "ssc") return "ssc_cgl";
+    if (examKey === "semester" || examKey === "placement") return "cs";
+    return "custom";
   },
 
   loadHistory() {
@@ -347,7 +212,21 @@ const ExamSpaceManager = {
     if (!user) return;
 
     const activeExam = window.AppManager.activeExam;
+    
+    // Load from local storage sync fallback
     this.history = StorageManager.load(`examspace_history_${user.email}_${activeExam}`, []);
+    
+    // Attempt async pull if ApiClient is connected
+    if (window.ApiClient && window.ApiClient.isActive) {
+      window.ApiClient.getExamSpaceHistory(activeExam).then(data => {
+        if (data && data.length > 0) {
+          this.history = data;
+          StorageManager.save(`examspace_history_${user.email}_${activeExam}`, this.history);
+          this.renderHistoryList();
+        }
+      });
+    }
+
     this.renderHistoryList();
   },
 
@@ -374,7 +253,7 @@ const ExamSpaceManager = {
       return;
     }
 
-    listEl.innerHTML = this.history.map((test, index) => {
+    listEl.innerHTML = this.history.map((test) => {
       const dateStr = new Date(test.timestamp).toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
@@ -382,12 +261,14 @@ const ExamSpaceManager = {
         minute: '2-digit'
       });
       const scoreClass = test.scorePercent >= 80 ? 'high' : test.scorePercent < 50 ? 'low' : '';
+      const subjectsLabel = Array.isArray(test.subjects) ? test.subjects.join(', ') : test.subjects;
       
       return `
         <div class="past-test-item">
           <div class="past-test-info">
-            <h4>${test.subjects.join(', ')}</h4>
-            <p>${test.questionCount} Questions | ${dateStr}</p>
+            <h4 style="text-transform: capitalize;">${test.exam.toUpperCase()} Mock Test</h4>
+            <p>${subjectsLabel}</p>
+            <p style="font-size: 10px; color: var(--text-muted); margin-top:2px;">${test.questionCount} Qs | Difficulty: ${test.difficulty} | ${dateStr}</p>
           </div>
           <span class="past-test-score ${scoreClass}">${test.scorePercent}%</span>
         </div>
@@ -395,26 +276,56 @@ const ExamSpaceManager = {
     }).join('');
   },
 
-  renderConfigurator() {
+  renderSubjectsForExam(examVal) {
+    const checkboxGroup = document.getElementById("quiz-subject-checkboxes");
+    if (!checkboxGroup) return;
+
+    const subjects = EXAM_SUBJECTS[examVal] || [];
+    checkboxGroup.innerHTML = subjects.map(sub => `
+      <div class="subject-weight-card" style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02); border:1px solid var(--border-glass); padding:10px 15px; border-radius:var(--border-radius-sm); transition:all 0.2s ease;">
+        <label style="display:flex; align-items:center; gap:8px; margin:0; cursor:pointer; font-size:13px; font-weight:500;">
+          <input type="checkbox" name="quiz-subject" value="${sub}" checked style="cursor:pointer;">
+          <span>${sub}</span>
+        </label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:10px; color:var(--text-muted);">Weight:</span>
+          <select name="quiz-subject-weight-${sub}" style="background:var(--bg-secondary); border:1px solid var(--border-solid); padding:2px 6px; border-radius:var(--border-radius-sm); color:var(--text-primary); font-size:11px;">
+            <option value="1">Low</option>
+            <option value="2" selected>Medium</option>
+            <option value="3">High</option>
+          </select>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  toggleSelectAllSubjects() {
+    const checkboxes = document.querySelectorAll('input[name="quiz-subject"]');
+    const selectAllBtn = document.getElementById("quiz-select-all-btn");
+    if (checkboxes.length === 0 || !selectAllBtn) return;
+
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => cb.checked = !allChecked);
+    selectAllBtn.textContent = allChecked ? "Select All" : "Deselect All";
+  },
+
+  updateSyllabusCoverageWarning() {
+    const warningBox = document.getElementById("quiz-completed-warning-box");
+    if (!warningBox) return;
+
     const activeExam = window.AppManager.activeExam;
     const examPreset = EXAM_PRESETS[activeExam];
-    if (!examPreset) return;
+    if (!examPreset) {
+      warningBox.innerHTML = '';
+      return;
+    }
 
-    // Render syllabus completion status card
-    const warningBox = document.getElementById("quiz-completed-warning-box");
-    const checkboxGroup = document.getElementById("quiz-subject-checkboxes");
-    
-    if (!warningBox || !checkboxGroup) return;
-
-    // Get completed syllabus details
     let totalTopics = 0;
     let completedTopics = 0;
 
     examPreset.subjects.forEach(sub => {
-      // Find matching subject in user's saved data
       const storedSubject = window.SyllabusManager && window.SyllabusManager.syllabusData.find(s => s.name === sub.name);
       const topics = storedSubject ? storedSubject.topics : sub.topics;
-      
       topics.forEach(t => {
         totalTopics++;
         if (t.completed) completedTopics++;
@@ -425,33 +336,25 @@ const ExamSpaceManager = {
 
     if (completionRate === 0) {
       warningBox.innerHTML = `
-        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); padding: 15px; border-radius: var(--border-radius-md); display:flex; align-items:center; gap:12px;">
-          <i class="fas fa-exclamation-triangle" style="color:var(--accent-warning); font-size:20px;"></i>
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.15); padding: 12px; border-radius: var(--border-radius-md); display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-exclamation-triangle" style="color:var(--accent-warning); font-size:16px;"></i>
           <div>
-            <h4 style="font-size:13.5px; color:var(--accent-warning); margin:0 0 2px 0;">Syllabus progress is at 0%</h4>
-            <p style="font-size:12px; margin:0; line-height:1.4;">Tackle subjects in the <b>Syllabus Tracker</b> first. Fallback dummy questions will be simulated for this test.</p>
+            <h4 style="font-size:13px; color:var(--accent-warning); margin:0 0 1px 0;">Syllabus progress is at 0%</h4>
+            <p style="font-size:11.5px; margin:0; line-height:1.4; color:var(--text-secondary);">Simulating mock test concepts based on standard exam difficulty settings.</p>
           </div>
         </div>
       `;
     } else {
       warningBox.innerHTML = `
-        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15); padding: 15px; border-radius: var(--border-radius-md); display:flex; align-items:center; gap:12px;">
-          <i class="fas fa-check-circle" style="color:var(--accent-success); font-size:20px;"></i>
+        <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.12); padding: 12px; border-radius: var(--border-radius-md); display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-check-circle" style="color:var(--accent-success); font-size:16px;"></i>
           <div>
-            <h4 style="font-size:13.5px; color:var(--accent-success); margin:0 0 2px 0;">Syllabus Coverage: ${completionRate}%</h4>
-            <p style="font-size:12px; margin:0; line-height:1.4;">Awesome! The engine will select and prioritize questions from the ${completedTopics} completed topic areas.</p>
+            <h4 style="font-size:13px; color:var(--accent-success); margin:0 0 1px 0;">Syllabus Coverage: ${completionRate}%</h4>
+            <p style="font-size:11.5px; margin:0; line-height:1.4; color:var(--text-secondary);">Prioritizing completed topic segments for adaptive learning questions.</p>
           </div>
         </div>
       `;
     }
-
-    // Render subject checkboxes
-    checkboxGroup.innerHTML = examPreset.subjects.map((sub, idx) => `
-      <label class="subject-checkbox-card">
-        <input type="checkbox" name="quiz-subject" value="${sub.name}" checked>
-        <span>${sub.name}</span>
-      </label>
-    `).join('');
   },
 
   resetToConfigurator() {
@@ -462,6 +365,9 @@ const ExamSpaceManager = {
   },
 
   startTest() {
+    const examSelect = document.getElementById("quiz-exam-select");
+    const examVal = examSelect ? examSelect.value : "custom";
+
     const selectedBoxes = document.querySelectorAll('input[name="quiz-subject"]:checked');
     if (selectedBoxes.length === 0) {
       alert("Please select at least one subject to generate questions!");
@@ -469,11 +375,19 @@ const ExamSpaceManager = {
     }
 
     const selectedSubjects = Array.from(selectedBoxes).map(box => box.value);
-    const count = parseInt(document.getElementById("quiz-question-count").value);
-    const timeLimitMinutes = parseInt(document.getElementById("quiz-time-limit").value);
+    const count = parseInt(document.getElementById("quiz-question-count").value) || 10;
+    const timeLimitMinutes = parseInt(document.getElementById("quiz-time-limit").value) || 10;
+    const difficulty = document.getElementById("quiz-difficulty").value || "Medium";
 
-    // Generate questions list
-    const generatedQuestions = this.generateQuestionsForTest(selectedSubjects, count);
+    // Extract weights
+    const weights = {};
+    selectedSubjects.forEach(sub => {
+      const selectEl = document.querySelector(`select[name="quiz-subject-weight-${sub}"]`);
+      weights[sub] = selectEl ? parseInt(selectEl.value) : 2;
+    });
+
+    // Generate questions list based on selections and weight ratios
+    const generatedQuestions = this.generateQuestionsForTest(examVal, selectedSubjects, count, difficulty, weights);
 
     if (generatedQuestions.length === 0) {
       alert("Failed to generate test questions. Try checking more subjects.");
@@ -484,144 +398,219 @@ const ExamSpaceManager = {
     this.currentTest.questions = generatedQuestions;
     this.currentTest.currentIndex = 0;
     this.currentTest.answers = {};
+    this.currentTest.markedForReview = {};
+    this.currentTest.visited = { 0: true };
     this.currentTest.totalDuration = timeLimitMinutes * 60;
     this.currentTest.timerRemaining = timeLimitMinutes * 60;
+    this.currentTest.difficulty = difficulty;
+    this.currentTest.exam = examVal;
 
     // Show Runner view
     document.getElementById("quiz-config-view").style.display = "none";
     document.getElementById("quiz-runner-view").style.display = "block";
     document.getElementById("quiz-results-view").style.display = "none";
 
+    // Render navigation grid
+    this.renderQuestionNavGrid();
+
     // Setup active timer
     this.startTimer();
     this.renderActiveQuestion();
   },
 
-  generateQuestionsForTest(selectedSubjects, count) {
-    const activeExam = window.AppManager.activeExam;
-    const examPreset = EXAM_PRESETS[activeExam];
-    
-    // Find syllabus completion mappings to see what topics are completed
-    const completedTopicNames = [];
-    selectedSubjects.forEach(subName => {
-      const storedSubject = window.SyllabusManager && window.SyllabusManager.syllabusData.find(s => s.name === subName);
-      if (storedSubject) {
-        storedSubject.topics.forEach(t => {
-          if (t.completed) completedTopicNames.push({ subject: subName, topic: t.name });
-        });
-      }
+  generateQuestionsForTest(examVal, selectedSubjects, count, difficulty, weights) {
+    // 1. Calculate ratios based on subject weights
+    let totalWeight = 0;
+    selectedSubjects.forEach(sub => {
+      totalWeight += (weights[sub] || 2);
     });
 
-    const pool = [];
-
-    // 1. Gather all pre-seeded questions matching selected subjects
-    selectedSubjects.forEach(subName => {
-      // Map general categories:
-      let preseededKey = "General";
-      const nameLower = subName.toLowerCase();
-      if (nameLower.includes("physic")) preseededKey = "Physics";
-      else if (nameLower.includes("chemist")) preseededKey = "Chemistry";
-      else if (nameLower.includes("legal") || nameLower.includes("law")) preseededKey = "Legal Reasoning";
-      else if (nameLower.includes("defense") || nameLower.includes("defence") || nameLower.includes("military") || nameLower.includes("gat")) preseededKey = "Military GK";
-      else if (nameLower.includes("english") || nameLower.includes("verbal")) preseededKey = "General English";
-      else if (nameLower.includes("math") || nameLower.includes("calculus") || nameLower.includes("algebra") || nameLower.includes("arithmetic") || nameLower.includes("geometry") || nameLower.includes("quantitative")) preseededKey = "Mathematics";
-      else if (nameLower.includes("biolog") || nameLower.includes("physiolog")) preseededKey = "Biology";
-      else if (nameLower.includes("computer") || nameLower.includes("algorithm") || nameLower.includes("engineering")) preseededKey = "Core Computer Science";
-      else if (nameLower.includes("general studies") || nameLower.includes("polity") || nameLower.includes("history") || nameLower.includes("knowledge") || nameLower.includes("gk") || nameLower.includes("awareness")) preseededKey = "General Studies";
-      else if (nameLower.includes("aptitude") || nameLower.includes("reason")) preseededKey = "Mathematics & Aptitude";
-
-      const qList = PRESEEDED_QUESTIONS[preseededKey] || [];
-      qList.forEach(q => {
-        pool.push({
-          subject: subName,
-          question: q.question,
-          options: [...q.options],
-          answer: q.answer,
-          explanation: q.explanation
-        });
-      });
+    const questionsPerSubject = {};
+    selectedSubjects.forEach(sub => {
+      const w = weights[sub] || 2;
+      questionsPerSubject[sub] = Math.round((w / totalWeight) * count);
     });
 
-    // Shuffle initial preseeded pool
-    let testQuestions = pool.sort(() => 0.5 - Math.random());
-
-    // 2. Generate fallback / extra questions matching subjects & completed topics specifically
-    if (testQuestions.length < count) {
-      const needed = count - testQuestions.length;
-      
-      for (let i = 0; i < needed; i++) {
-        // Pick a completed topic if available, otherwise just pick any topic from the active exam
-        let targetSubject = selectedSubjects[i % selectedSubjects.length];
-        let targetTopic = "General Core Concepts";
-
-        const completedForSub = completedTopicNames.filter(c => c.subject === targetSubject);
-        if (completedForSub.length > 0) {
-          const randCompleted = completedForSub[Math.floor(Math.random() * completedForSub.length)];
-          targetTopic = randCompleted.topic;
-        } else {
-          // Fallback to active syllabus list topics
-          const originalSub = examPreset.subjects.find(s => s.name === targetSubject);
-          if (originalSub && originalSub.topics.length > 0) {
-            const randOriginal = originalSub.topics[Math.floor(Math.random() * originalSub.topics.length)];
-            targetTopic = randOriginal.name;
-          }
-        }
-
-        // Generate a plausible mock question
-        const generated = this.createFallbackQuestion(targetSubject, targetTopic, i);
-        testQuestions.push(generated);
+    // Adjust rounding mismatch to hit count precisely
+    let currentSum = Object.values(questionsPerSubject).reduce((a, b) => a + b, 0);
+    while (currentSum !== count) {
+      const diff = count - currentSum;
+      const step = diff > 0 ? 1 : -1;
+      const keys = Object.keys(questionsPerSubject);
+      const randomKey = keys[Math.floor(Math.random() * keys.length)];
+      if (questionsPerSubject[randomKey] + step >= 0) {
+        questionsPerSubject[randomKey] += step;
+        currentSum += step;
       }
     }
 
-    // Limit to count requested
-    return testQuestions.slice(0, count);
+    const testQuestions = [];
+
+    // 2. Fetch or generate questions for each subject
+    selectedSubjects.forEach(sub => {
+      const targetCount = questionsPerSubject[sub];
+      let subQuestions = [];
+
+      // Try preseeded questions first
+      let preseededKey = this.mapSubjectToPreseededKey(sub);
+      const preseededList = PRESEEDED_QUESTIONS[preseededKey] || [];
+      
+      const shuffledPreseeded = [...preseededList].sort(() => 0.5 - Math.random());
+      shuffledPreseeded.forEach(q => {
+        if (subQuestions.length < targetCount) {
+          subQuestions.push({
+            subject: sub,
+            question: q.question,
+            options: [...q.options],
+            answer: q.answer,
+            explanation: q.explanation
+          });
+        }
+      });
+
+      // Generate procedural questions to fill remaining slots
+      let indexCounter = 0;
+      while (subQuestions.length < targetCount) {
+        const generated = this.createProceduralQuestion(sub, difficulty, indexCounter++);
+        subQuestions.push(generated);
+      }
+
+      testQuestions.push(...subQuestions);
+    });
+
+    // Shuffle final generated questions list
+    return testQuestions.sort(() => 0.5 - Math.random());
   },
 
-  createFallbackQuestion(subject, topic, index) {
-    const templates = [
-      {
-        question: `In reference to "${topic}" within ${subject}, which of the following statements represents the primary foundational principle?`,
-        options: [
-          `It defines the equilibrium state where kinetic rates balance out.`,
-          `It states that energy remains conserved under steady state parameters.`,
-          `It represents the boundary constraint where external flux equals zero.`,
-          `It dictates the rate of transfer based on logarithmic scaling curves.`
-        ],
-        answer: 1,
-        explanation: `Under ${topic}, the core theorem states that total conservation holds true in an isolated system, allowing calculation of transient energy states and steady potentials.`
-      },
-      {
-        question: `Which of the following is considered a typical practical application or engineering constraint of "${topic}"?`,
-        options: [
-          `Optimizing thermal insulation coefficients in high-pressure chambers.`,
-          `Calibrating sensor feedback latency during electromagnetic interference.`,
-          `Reducing computational latency constraints in dynamic addressing schemes.`,
-          `All of the above depending on system scale and operating environments.`
-        ],
-        answer: 3,
-        explanation: `Concepts around "${topic}" apply across multi-disciplinary boundaries, requiring optimization of efficiency, interference insulation, and bandwidth limits.`
-      },
-      {
-        question: `When analyzing "${topic}", what is the primary impact of increasing the system's operational temperature or pressure parameters?`,
-        options: [
-          `Decreases particle velocity, resulting in slower convergence rates.`,
-          `Increases collision frequency and average molecular kinetic energy.`,
-          `Reduces the system's total entropy and shifts equilibrium to reactants.`,
-          `Has no measurable effect on reaction pathways or state equations.`
-        ],
-        answer: 1,
-        explanation: `Thermal shifts increase the kinetic energy distribution. Under collision models of "${topic}", this increases successful barrier crossings.`
-      }
-    ];
+  mapSubjectToPreseededKey(subName) {
+    const nameLower = subName.toLowerCase();
+    if (nameLower.includes("physic")) return "Physics";
+    if (nameLower.includes("chemist")) return "Chemistry";
+    if (nameLower.includes("biolog")) return "Biology";
+    if (nameLower.includes("math") || nameLower.includes("calculus") || nameLower.includes("algebra") || nameLower.includes("arithmetic") || nameLower.includes("quant")) return "Mathematics";
+    if (nameLower.includes("computer") || nameLower.includes("algorithm") || nameLower.includes("programming") || nameLower.includes("data structure") || nameLower.includes("dbms") || nameLower.includes("network") || nameLower.includes("operating system")) return "Core Computer Science";
+    if (nameLower.includes("history") || nameLower.includes("polity") || nameLower.includes("geography") || nameLower.includes("economy") || nameLower.includes("environment") || nameLower.includes("general studies") || nameLower.includes("gk") || nameLower.includes("awareness")) return "General Studies";
+    return "General";
+  },
 
-    // Select template based on index to randomize, and replace templates
-    const base = templates[index % templates.length];
+  createProceduralQuestion(subject, difficulty, index) {
+    const subLower = subject.toLowerCase();
+    
+    // Random coefficients
+    const numA = 10 + (index * 7) % 40;
+    const numB = 2 + (index * 3) % 9;
+    const prod = numA * numB;
+    
+    // Templates based on subjects
+    if (subLower.includes("physics")) {
+      return {
+        subject,
+        question: `[${difficulty}] An object of mass ${numB} kg accelerates at a constant rate of ${numA} m/s². What is the net force acting on the object?`,
+        options: [`${prod} N`, `${(numA / numB).toFixed(1)} N`, `${(numB / numA).toFixed(1)} N`, `${numA + numB} N`],
+        answer: 0,
+        explanation: `Using Newton's Second Law of Motion: F = ma. Here mass (m) = ${numB} kg, and acceleration (a) = ${numA} m/s². Thus, Force = ${numB} * ${numA} = ${prod} N.`
+      };
+    }
+    
+    if (subLower.includes("chemistry")) {
+      const pHVal = 2 + (index % 5);
+      const isAcid = pHVal < 7;
+      return {
+        subject,
+        question: `[${difficulty}] A test solution is measured to have a pH value of ${pHVal}. How is this solution classified?`,
+        options: ["Neutral", "Strongly Alkaline", isAcid ? "Acidic" : "Basic", isAcid ? "Basic" : "Acidic"],
+        answer: 2,
+        explanation: `Solutions with a pH less than 7 are classified as acidic, whereas solutions with pH values greater than 7 are alkaline (basic). A pH of 7 represents neutral.`
+      };
+    }
+    
+    if (subLower.includes("math") || subLower.includes("quant") || subLower.includes("calculus") || subLower.includes("algebra")) {
+      return {
+        subject,
+        question: `[${difficulty}] If a set of ${numA} similar machines can produce ${prod} units in an hour, how many units can one machine produce in the same duration?`,
+        options: [`${numB} units`, `${numA} units`, `${prod} units`, `${numA + numB} units`],
+        answer: 0,
+        explanation: `Production is linear. If ${numA} machines yield ${prod} units, then one machine yields ${prod} / ${numA} = ${numB} units.`
+      };
+    }
+    
+    if (subLower.includes("biolog")) {
+      return {
+        subject,
+        question: `[${difficulty}] During cellular processes, which molecule acts as the primary energy currency for cellular functions?`,
+        options: ["Glucose", "ADP", "ATP (Adenosine Triphosphate)", "NADH"],
+        answer: 2,
+        explanation: `ATP is the primary energy carrier in cells, transferring chemical energy harvested from cellular respiration pathways to energy-consuming cellular mechanisms.`
+      };
+    }
+
+    if (subLower.includes("program") || subLower.includes("data structure") || subLower.includes("dbms") || subLower.includes("operating") || subLower.includes("network") || subLower.includes("computer")) {
+      return {
+        subject,
+        question: `[${difficulty}] In database design, which property ensures that a relational table column uniquely identifies each row record?`,
+        options: ["Foreign Key", "Index Marker", "Primary Key", "Unique Constrain"],
+        answer: 2,
+        explanation: `A Primary Key constraints column values to be unique and non-null, uniquely mapping each record within a relational database table.`
+      };
+    }
+
+    if (subLower.includes("reason") || subLower.includes("aptitude") || subLower.includes("intelligence")) {
+      const nextNum = numA + numB * 3;
+      return {
+        subject,
+        question: `[${difficulty}] Complete the arithmetic progression series: ${numA}, ${numA + numB}, ${numA + numB * 2}, ______ ?`,
+        options: [`${nextNum}`, `${numA + numB * 4}`, `${numA + numB * 5}`, `${numA * numB}`],
+        answer: 0,
+        explanation: `The common difference in this progression series is +${numB}. Therefore, the fourth term is calculated as ${numA + numB * 2} + ${numB} = ${nextNum}.`
+      };
+    }
+
+    if (subLower.includes("history") || subLower.includes("gk") || subLower.includes("awareness") || subLower.includes("polity") || subLower.includes("economy") || subLower.includes("studies") || subLower.includes("environment")) {
+      const years = [1947, 1950, 1973, 1915, 1857];
+      const yr = years[index % years.length];
+      let questionText = ``;
+      let optionsList = [];
+      let ans = 0;
+      let exp = ``;
+
+      if (yr === 1947) {
+        questionText = `[${difficulty}] In which year did India officially achieve independence from British colonial rule?`;
+        optionsList = ["1947", "1950", "1942", "1935"];
+        ans = 0;
+        exp = "India gained independence from British rule on August 15, 1947, under the Indian Independence Act.";
+      } else if (yr === 1950) {
+        questionText = `[${difficulty}] In which year did the Constitution of India come into force, declaring India a sovereign republic?`;
+        optionsList = ["1947", "1950", "1952", "1949"];
+        ans = 1;
+        exp = "The Constitution of India was adopted on November 26, 1949, and officially came into force on January 26, 1950.";
+      } else {
+        questionText = `[${difficulty}] Which constitutional body regulates monetary policy framework parameters in the Indian economy?`;
+        optionsList = ["Ministry of Finance", "Securities and Exchange Board of India (SEBI)", "Reserve Bank of India (RBI)", "NITI Aayog"];
+        ans = 2;
+        exp = "The Reserve Bank of India (RBI) is the central bank of India, responsible for implementing monetary policy parameters to manage inflation and credit flow.";
+      }
+
+      return {
+        subject,
+        question: questionText,
+        options: optionsList,
+        answer: ans,
+        explanation: exp
+      };
+    }
+
+    // Generic fallback template
     return {
-      subject: subject,
-      question: base.question,
-      options: base.options,
-      answer: base.answer,
-      explanation: base.explanation
+      subject,
+      question: `[${difficulty}] In reference to "${subject}" syllabus topics, which of the following is considered a typical practical application constraint?`,
+      options: [
+        "Calibrating sensor feedback latency during ambient interference.",
+        "Optimizing structural efficiency, safety factors, and resource inputs.",
+        "Reducing processing workloads in high-pressure execution loops.",
+        "All of the above depending on system scale and operating environments."
+      ],
+      answer: 3,
+      explanation: `Concepts under this chapter of "${subject}" require balanced considerations of safety, cost, environmental impacts, and technical system capabilities.`
     };
   },
 
@@ -644,16 +633,49 @@ const ExamSpaceManager = {
       const secs = this.currentTest.timerRemaining % 60;
       timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-      // Add visual warning if less than 60 seconds
       if (this.currentTest.timerRemaining < 60) {
-        timerWrapper.classList.add("warning");
+        if (timerWrapper) timerWrapper.classList.add("warning");
       } else {
-        timerWrapper.classList.remove("warning");
+        if (timerWrapper) timerWrapper.classList.remove("warning");
       }
     };
 
     updateTimerUI();
     this.currentTest.timerInterval = setInterval(updateTimerUI, 1000);
+  },
+
+  renderQuestionNavGrid() {
+    const grid = document.getElementById("quiz-nav-grid");
+    if (!grid) return;
+
+    grid.innerHTML = this.currentTest.questions.map((q, idx) => {
+      let statusClass = "";
+      if (this.currentTest.currentIndex === idx) {
+        statusClass = "active";
+      } else if (this.currentTest.markedForReview[idx]) {
+        statusClass = "marked-review";
+      } else if (this.currentTest.answers[idx] !== undefined) {
+        statusClass = "answered";
+      } else if (this.currentTest.visited[idx]) {
+        statusClass = "visited";
+      }
+
+      return `
+        <button type="button" class="quiz-nav-btn ${statusClass}" onclick="ExamSpaceManager.jumpToQuestion(${idx})">
+          ${idx + 1}
+        </button>
+      `;
+    }).join('');
+  },
+
+  jumpToQuestion(index) {
+    if (index >= 0 && index < this.currentTest.questions.length) {
+      this.currentTest.visited[this.currentTest.currentIndex] = true;
+      this.currentTest.currentIndex = index;
+      this.currentTest.visited[index] = true;
+      this.renderActiveQuestion();
+      this.renderQuestionNavGrid();
+    }
   },
 
   renderActiveQuestion() {
@@ -698,6 +720,19 @@ const ExamSpaceManager = {
       }).join('');
     }
 
+    // Toggle mark review button active state
+    const markReviewBtn = document.getElementById("quiz-mark-review-btn");
+    if (markReviewBtn) {
+      const isMarked = this.currentTest.markedForReview[this.currentTest.currentIndex];
+      if (isMarked) {
+        markReviewBtn.innerHTML = `<i class="fas fa-bookmark"></i> Marked`;
+        markReviewBtn.style.background = "rgba(139, 92, 246, 0.1)";
+      } else {
+        markReviewBtn.innerHTML = `<i class="far fa-bookmark"></i> Mark for Review`;
+        markReviewBtn.style.background = "transparent";
+      }
+    }
+
     // Toggle next vs submit button
     const nextBtn = document.getElementById("quiz-next-btn");
     const submitBtn = document.getElementById("quiz-submit-btn");
@@ -720,35 +755,58 @@ const ExamSpaceManager = {
   selectOption(optionIndex) {
     this.currentTest.answers[this.currentTest.currentIndex] = optionIndex;
     this.renderActiveQuestion();
+    this.renderQuestionNavGrid();
+  },
+
+  toggleMarkForReview() {
+    const idx = this.currentTest.currentIndex;
+    this.currentTest.markedForReview[idx] = !this.currentTest.markedForReview[idx];
+    this.renderActiveQuestion();
+    this.renderQuestionNavGrid();
   },
 
   prevQuestion() {
     if (this.currentTest.currentIndex > 0) {
-      this.currentTest.currentIndex--;
-      this.renderActiveQuestion();
+      this.jumpToQuestion(this.currentTest.currentIndex - 1);
     }
   },
 
   nextQuestion() {
     if (this.currentTest.currentIndex < this.currentTest.questions.length - 1) {
-      this.currentTest.currentIndex++;
-      this.renderActiveQuestion();
+      this.jumpToQuestion(this.currentTest.currentIndex + 1);
     }
   },
 
-  submitTest() {
+  async submitTest() {
     clearInterval(this.currentTest.timerInterval);
 
     let correctCount = 0;
     let incorrectCount = 0;
+    let attemptedCount = 0;
     const reviewData = [];
+
+    // Subject-wise correct/total counts
+    const subjectStats = {};
 
     this.currentTest.questions.forEach((q, idx) => {
       const userAns = this.currentTest.answers[idx];
-      const isCorrect = userAns === q.answer;
+      const hasAttempted = userAns !== undefined;
+      const isCorrect = hasAttempted && userAns === q.answer;
 
-      if (isCorrect) correctCount++;
-      else incorrectCount++;
+      if (hasAttempted) {
+        attemptedCount++;
+        if (isCorrect) correctCount++;
+        else incorrectCount++;
+      } else {
+        incorrectCount++; // Unanswered counts as incorrect for score
+      }
+
+      // Initialize subject stats if missing
+      if (!subjectStats[q.subject]) {
+        subjectStats[q.subject] = { correct: 0, total: 0 };
+      }
+      subjectStats[q.subject].total++;
+      if (isCorrect) subjectStats[q.subject].correct++;
 
       reviewData.push({
         subject: q.subject,
@@ -761,48 +819,89 @@ const ExamSpaceManager = {
       });
     });
 
-    const scorePercent = Math.round((correctCount / this.currentTest.questions.length) * 100);
+    const totalQs = this.currentTest.questions.length;
+    const scorePercent = Math.round((correctCount / totalQs) * 100);
 
-    // Save test in history list
-    const activeExam = window.AppManager.activeExam;
-    const examPreset = EXAM_PRESETS[activeExam];
-    
-    // Extract distinct subjects tested
-    const testedSubjects = Array.from(new Set(this.currentTest.questions.map(q => q.subject)));
+    // Calculate time taken
+    const timeTakenSeconds = this.currentTest.totalDuration - this.currentTest.timerRemaining;
+    const minsTaken = Math.floor(timeTakenSeconds / 60);
+    const secsTaken = timeTakenSeconds % 60;
+    const timeTakenStr = `${String(minsTaken).padStart(2, '0')}:${String(secsTaken).padStart(2, '0')}`;
 
-    const newTestHistory = {
-      timestamp: new Date().toISOString(),
-      exam: activeExam,
-      subjects: testedSubjects,
-      questionCount: this.currentTest.questions.length,
-      correctCount: correctCount,
-      incorrectCount: incorrectCount,
-      scorePercent: scorePercent
-    };
+    // Subject-wise breakdown list
+    const strengths = [];
+    const weaknesses = [];
 
-    this.history.unshift(newTestHistory);
-    this.saveHistory();
+    const subjectListHTML = Object.keys(subjectStats).map(sub => {
+      const stats = subjectStats[sub];
+      const rate = Math.round((stats.correct / stats.total) * 100);
+      
+      if (rate >= 75) strengths.push(sub);
+      if (rate < 60) weaknesses.push(sub);
 
-    // Trigger sound alerts if enabled
-    const audioEnabled = StorageManager.load("audio_alerts_enabled", true);
-    if (audioEnabled) {
-      this.synthesizeCompletionSound(scorePercent >= 80);
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; border-bottom: 1px solid rgba(255,255,255,0.02); padding-bottom:4px;">
+          <span>${sub}</span>
+          <span style="font-weight:600;">${stats.correct}/${stats.total} (${rate}%)</span>
+        </div>
+      `;
+    }).join('');
+
+    // Generate local recommendations fallback text
+    let tipsHTML = "";
+    if (weaknesses.length > 0) {
+      tipsHTML = `
+        <p><strong>Weak Subjects Identified:</strong> ${weaknesses.join(', ')}</p>
+        <ul style="padding-left:18px; margin:6px 0;">
+          <li>Review key textbooks and notes specifically focusing on these syllabus domains.</li>
+          <li>Adjust your Daily Schedule blocks to allocate extra time to these areas.</li>
+          <li>Set up shorter Mock Tests focusing exclusively on these subjects to practice.</li>
+        </ul>
+      `;
+    } else {
+      tipsHTML = `
+        <p><strong>Excellent Performance Profile!</strong> All subjects demonstrate solid scores.</p>
+        <ul style="padding-left:18px; margin:6px 0;">
+          <li>Keep practicing mixed question blocks to preserve speed and confidence.</li>
+          <li>Tackle the remaining uncompleted topics in your Syllabus Tracker.</li>
+          <li>Simulate tests with shorter time limits to build rapid retrieval.</li>
+        </ul>
+      `;
     }
 
-    // Render Results View
+    // Add layout changes to results card
     document.getElementById("quiz-config-view").style.display = "none";
     document.getElementById("quiz-runner-view").style.display = "none";
     document.getElementById("quiz-results-view").style.display = "block";
 
     // Populate Results
+    const totalQuestionsEl = document.getElementById("results-total-questions");
     const scorePercentEl = document.getElementById("results-percentage");
     const performanceMsgEl = document.getElementById("results-performance-message");
+    const attemptedCountEl = document.getElementById("results-attempted-count");
     const correctCountEl = document.getElementById("results-correct-count");
     const incorrectCountEl = document.getElementById("results-incorrect-count");
+    const timeTakenEl = document.getElementById("results-time-taken");
+    const strengthsEl = document.getElementById("results-strengths-badge");
+    const weaknessesEl = document.getElementById("results-weaknesses-badge");
+    const analysisListEl = document.getElementById("results-subject-analysis-list");
+    const aiRecommendationsEl = document.getElementById("results-ai-recommendations");
 
+    if (totalQuestionsEl) totalQuestionsEl.textContent = totalQs;
     if (scorePercentEl) scorePercentEl.textContent = `${scorePercent}%`;
-    if (correctCountEl) correctCountEl.textContent = `${correctCount} Correct`;
-    if (incorrectCountEl) incorrectCountEl.textContent = `${incorrectCount} Incorrect`;
+    if (attemptedCountEl) attemptedCountEl.textContent = attemptedCount;
+    if (correctCountEl) correctCountEl.textContent = correctCount;
+    if (incorrectCountEl) incorrectCountEl.textContent = incorrectCount;
+    if (timeTakenEl) timeTakenEl.textContent = `${minsTaken} min ${secsTaken} sec`;
+    
+    if (strengthsEl) strengthsEl.textContent = strengths.join(', ') || 'None';
+    if (weaknessesEl) weaknessesEl.textContent = weaknesses.join(', ') || 'None';
+    if (analysisListEl) analysisListEl.innerHTML = subjectListHTML;
+    if (aiRecommendationsEl) aiRecommendationsEl.innerHTML = `
+      <div id="ai-recs-loading" style="text-align:center; padding:10px 0; color:var(--text-muted);">
+        <i class="fas fa-spinner fa-spin"></i> Analyzing mock test performance and generating AI tutor tips...
+      </div>
+    `;
 
     if (performanceMsgEl) {
       if (scorePercent >= 90) {
@@ -816,14 +915,47 @@ const ExamSpaceManager = {
       }
     }
 
-    // Render Review List
+    // Save attempt data
+    const activeExam = window.AppManager.activeExam;
+    const testResult = {
+      timestamp: new Date().toISOString(),
+      exam: this.currentTest.exam,
+      subjects: Array.from(new Set(this.currentTest.questions.map(q => q.subject))),
+      questionCount: totalQs,
+      correctCount: correctCount,
+      incorrectCount: incorrectCount,
+      scorePercent: scorePercent,
+      durationMinutes: Math.ceil(this.currentTest.totalDuration / 60),
+      timeTakenSeconds: timeTakenSeconds,
+      difficulty: this.currentTest.difficulty,
+      subjectAnalysis: subjectStats,
+      recommendations: { strengths, weaknesses }
+    };
+
+    this.history.unshift(testResult);
+    this.saveHistory();
+
+    // Mirror to MySQL Database
+    if (window.ApiClient && window.ApiClient.isActive) {
+      window.ApiClient.saveExamSpaceAttempt(activeExam, testResult);
+    }
+
+    // Trigger sound alert
+    const audioEnabled = StorageManager.load("audio_alerts_enabled", true);
+    if (audioEnabled) {
+      this.synthesizeCompletionSound(scorePercent >= 75);
+    }
+
+    // Asynchronously call Gemini API for customized AI Recommendations
+    this.fetchAIChatbotRecommendations(testResult, strengths, weaknesses, timeTakenStr);
+
+    // Populate Detailed Review List
     const reviewListEl = document.getElementById("results-review-list");
     if (reviewListEl) {
       reviewListEl.innerHTML = reviewData.map((rev, idx) => {
         const letters = ["A", "B", "C", "D", "E"];
-        
         const badgeClass = rev.isCorrect ? 'correct' : 'incorrect';
-        const badgeLabel = rev.isCorrect ? 'Correct' : 'Incorrect';
+        const badgeLabel = rev.isCorrect ? 'Correct' : rev.userAnswer === undefined ? 'Unanswered' : 'Incorrect';
 
         const optionsHTML = rev.options.map((opt, oIdx) => {
           const letter = letters[oIdx];
@@ -868,6 +1000,56 @@ const ExamSpaceManager = {
     }
   },
 
+  async fetchAIChatbotRecommendations(testResult, strengths, weaknesses, timeTakenStr) {
+    const aiRecommendationsEl = document.getElementById("results-ai-recommendations");
+    if (!aiRecommendationsEl) return;
+
+    let localHTML = `
+      <p style="margin-bottom:8px;"><strong>StudyAI Local Recommendation Profile:</strong></p>
+      <div style="margin-bottom: 8px;">
+        <strong>Syllabus Strengths:</strong> <span style="color:var(--accent-success);">${strengths.join(', ') || 'None yet'}</span><br>
+        <strong>Focus Improvement Areas:</strong> <span style="color:var(--accent-danger);">${weaknesses.join(', ') || 'None! Keep it up'}</span>
+      </div>
+      <p>Recommended Materials: Look up practice sets in your notes section and tackle PYQ past papers for standard preparation.</p>
+    `;
+
+    if (window.ApiClient && window.ApiClient.isActive) {
+      try {
+        const statsStr = `taken a ${testResult.exam.toUpperCase()} mock test. Score: ${testResult.scorePercent}% (${testResult.correctCount}/${testResult.questionCount} correct). Difficulty: ${testResult.difficulty}. Time Taken: ${timeTakenStr}. Strengths: ${strengths.join(', ')}. Weaknesses: ${weaknesses.join(', ')}.`;
+        
+        // Prepare prompt payload format matching ApiClient memory parameters
+        const historyMock = [
+          {
+            sender: "user",
+            text: `Analyze my exam mock test results and provide concise bullet points suggestions. Here are my stats: ${statsStr}`
+          }
+        ];
+
+        const response = await window.ApiClient.askAI(historyMock);
+        if (response && response.success && !response.isFallback) {
+          // Format markdown carriage returns to HTML tags
+          const textFormatted = response.text
+            .replace(/\n\n/g, '<br><br>')
+            .replace(/\n/g, '<br>')
+            .replace(/\* \*\*(.*?)\*\*/g, '<li><strong>$1</strong>')
+            .replace(/\* (.*?)/g, '<li>$1')
+            .replace(/- (.*?)/g, '<li>$1');
+          
+          aiRecommendationsEl.innerHTML = `
+            <div style="text-align:left; font-family:'Outfit',sans-serif; line-height:1.6;">
+              ${textFormatted}
+            </div>
+          `;
+          return;
+        }
+      } catch (err) {
+        console.warn("Gemini Recommendations failed, rendering local template.", err);
+      }
+    }
+
+    aiRecommendationsEl.innerHTML = localHTML;
+  },
+
   synthesizeCompletionSound(isSuccess) {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -880,9 +1062,8 @@ const ExamSpaceManager = {
       osc.connect(gain);
       gain.connect(ctx.destination);
 
+      const now = ctx.currentTime;
       if (isSuccess) {
-        // Happy success chimes: C5 -> E5 -> G5
-        const now = ctx.currentTime;
         osc.frequency.setValueAtTime(523.25, now); // C5
         osc.frequency.setValueAtTime(659.25, now + 0.15); // E5
         osc.frequency.setValueAtTime(783.99, now + 0.3); // G5
@@ -891,8 +1072,6 @@ const ExamSpaceManager = {
         osc.start(now);
         osc.stop(now + 0.5);
       } else {
-        // Melancholic attempt chimes: G4 -> E4
-        const now = ctx.currentTime;
         osc.frequency.setValueAtTime(392.00, now); // G4
         osc.frequency.setValueAtTime(329.63, now + 0.2); // E4
         gain.gain.setValueAtTime(0.1, now);

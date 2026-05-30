@@ -71,6 +71,12 @@ const ApiClient = {
         if (chatLogs && chatLogs.length > 0) {
           localStorage.setItem(`ai_study_planner_chatbot_history_${this.currentUser.email}_${exam}`, JSON.stringify(chatLogs));
         }
+
+        // Fetch Exam Space History
+        const examSpaceHistory = await this.getExamSpaceHistory(exam);
+        if (examSpaceHistory && examSpaceHistory.length > 0) {
+          localStorage.setItem(`ai_study_planner_examspace_history_${this.currentUser.email}_${exam}`, JSON.stringify(examSpaceHistory));
+        }
       }
 
       // 3. Fetch Papers list
@@ -297,6 +303,45 @@ const ApiClient = {
       });
     } catch (e) {
       console.error("API error updating paper downloads:", e);
+    }
+  },
+
+  // 8. Exam Space Mock Tests
+  async getExamSpaceHistory(examKey) {
+    if (!this.currentUser) return [];
+    try {
+      const res = await fetch(`${this.BASE_URL}/api/examspace/${examKey}?userId=${this.currentUser.id}`);
+      if (res.ok) {
+        return await res.json();
+      }
+      return [];
+    } catch (e) {
+      console.error("API error fetching examspace history:", e);
+      return [];
+    }
+  },
+
+  async saveExamSpaceAttempt(examKey, attemptData) {
+    if (!this.currentUser) return;
+    try {
+      await fetch(`${this.BASE_URL}/api/examspace/${examKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: this.currentUser.id, ...attemptData })
+      });
+    } catch (e) {
+      console.error("API error saving examspace attempt:", e);
+    }
+  },
+
+  async deleteExamSpaceHistory(examKey) {
+    if (!this.currentUser) return;
+    try {
+      await fetch(`${this.BASE_URL}/api/examspace/${examKey}?userId=${this.currentUser.id}`, {
+        method: "DELETE"
+      });
+    } catch (e) {
+      console.error("API error clearing examspace history:", e);
     }
   }
 };
