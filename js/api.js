@@ -252,6 +252,20 @@ const ApiClient = {
     }
   },
 
+  async askAI(history) {
+    try {
+      const res = await fetch(`${this.BASE_URL}/api/chatbot/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ history })
+      });
+      return await res.json();
+    } catch (e) {
+      console.error("API error querying Gemini chatbot:", e);
+      return { success: false, message: "Network connection error." };
+    }
+  },
+
   async deleteChatHistory(examKey) {
     if (!this.currentUser) return;
     try {

@@ -3,6 +3,8 @@
 const ChatbotManager = {
   chatLogs: [],
   isLoading: false,
+  fallbackWarningShown: false,
+  offlineWarningShown: false,
 
   init() {
     this.setupListeners();
@@ -23,6 +25,22 @@ const ChatbotManager = {
       clearBtn.addEventListener("click", () => {
         if (confirm("Are you sure you want to clear this conversation?")) {
           this.clearHistory();
+        }
+      });
+    }
+
+    // Textarea auto-expansion & keydown submission
+    const input = document.getElementById("chatbot-user-input");
+    if (input) {
+      input.addEventListener("input", () => {
+        input.style.height = "auto";
+        input.style.height = `${input.scrollHeight}px`;
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          this.handleUserSubmit();
         }
       });
     }
@@ -80,6 +98,17 @@ const ChatbotManager = {
     }
   },
 
+  formatTime(timestamp) {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    return `${hours}:${minutes} ${ampm}`;
+  },
+
   renderMessages() {
     const container = document.getElementById("chatbot-messages-container");
     if (!container) return;
@@ -89,8 +118,11 @@ const ChatbotManager = {
         <div class="chat-avatar">
           <i class="fas ${msg.sender === 'user' ? 'fa-user' : 'fa-robot'}"></i>
         </div>
-        <div class="chat-bubble">
-          <p>${msg.text.replace(/\n/g, '<br>')}</p>
+        <div class="chat-message-content">
+          <div class="chat-bubble">
+            <p>${msg.text.replace(/\n/g, '<br>')}</p>
+          </div>
+          <div class="chat-timestamp">${this.formatTime(msg.timestamp)}</div>
         </div>
       </div>
     `).join('');
@@ -138,11 +170,12 @@ const ChatbotManager = {
     const input = document.getElementById("chatbot-user-input");
     if (input) {
       input.value = tagText;
+      input.style.height = "auto";
       this.handleUserSubmit();
     }
   },
 
-  handleUserSubmit() {
+  async handleUserSubmit() {
     if (this.isLoading) return;
 
     const input = document.getElementById("chatbot-user-input");
@@ -150,6 +183,7 @@ const ChatbotManager = {
 
     const text = input.value.trim();
     input.value = "";
+    input.style.height = "auto"; // Reset height on submit
 
     const activeExam = window.AppManager.activeExam;
 
@@ -170,24 +204,60 @@ const ChatbotManager = {
     // Show Typing Indicator
     this.showTypingIndicator();
 
-    // Simulate AI Processing Response
-    setTimeout(() => {
-      this.removeTypingIndicator();
-      const response = this.generateResponse(text);
-      
-      this.chatLogs.push({
-        sender: "assistant",
-        text: response,
-        timestamp: Date.now()
-      });
-      this.renderMessages();
-      this.saveHistory();
+    let response = "";
+    let useFallback = true;
 
-      // Sync assistant response to MySQL
+    try {
       if (window.ApiClient && window.ApiClient.isActive) {
-        window.ApiClient.saveChatMessage(activeExam, "assistant", response);
+        const result = await window.ApiClient.askAI(this.chatLogs);
+        if (result && result.success) {
+          if (result.isFallback) {
+            if (!this.fallbackWarningShown) {
+              window.ReminderManager.showToast(
+                "Offline Mode",
+                "Gemini API key is not configured. Running offline fallback.",
+                "warning"
+              );
+              this.fallbackWarningShown = true;
+            }
+          } else {
+            response = result.text;
+            useFallback = false;
+          }
+        }
       }
-    }, 1000 + Math.random() * 500);
+    } catch (err) {
+      console.warn("Error querying Gemini API. Using local fallback:", err);
+    }
+
+    if (useFallback) {
+      response = this.generateResponse(text);
+      if (!window.ApiClient || !window.ApiClient.isActive) {
+        if (!this.offlineWarningShown) {
+          window.ReminderManager.showToast(
+            "Connection Lost",
+            "Unable to reach the server. Running offline fallback.",
+            "warning"
+          );
+          this.offlineWarningShown = true;
+        }
+      }
+    }
+
+    this.removeTypingIndicator();
+
+    this.chatLogs.push({
+      sender: "assistant",
+      text: response,
+      timestamp: Date.now()
+    });
+    this.renderMessages();
+    this.saveHistory();
+
+    // Sync assistant response to MySQL
+    if (window.ApiClient && window.ApiClient.isActive) {
+      window.ApiClient.saveChatMessage(activeExam, "assistant", response);
+    }
   },
 
   showTypingIndicator() {
@@ -198,11 +268,13 @@ const ChatbotManager = {
     const indicatorHTML = `
       <div class="chat-message assistant" id="chatbot-typing-bubble">
         <div class="chat-avatar"><i class="fas fa-robot"></i></div>
-        <div class="chat-bubble">
-          <div class="typing-indicator">
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
-            <span class="typing-dot"></span>
+        <div class="chat-message-content">
+          <div class="chat-bubble">
+            <div class="typing-indicator">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+            </div>
           </div>
         </div>
       </div>
