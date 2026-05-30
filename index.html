@@ -143,6 +143,12 @@
           </a>
         </li>
         <li class="menu-item">
+          <a href="#" data-view="chatbot">
+            <i class="fas fa-comments"></i>
+            <span>AI Doubt Solver</span>
+          </a>
+        </li>
+        <li class="menu-item">
           <a href="#" data-view="settings">
             <i class="fas fa-cog"></i>
             <span>Settings</span>
@@ -782,6 +788,53 @@
         </div>
       </section>
 
+      <!-- VIEW: AI Chatbot Page -->
+      <section class="page-container" id="chatbot-page">
+        <div class="chatbot-container glass-card">
+          <div class="chatbot-sidebar">
+            <h4 style="margin: 0 0 12px 0; font-size:14px; border-bottom:1px solid var(--border-glass); padding-bottom:8px;">Recent Chats</h4>
+            <div class="recent-chats-list" id="chatbot-history-list">
+              <!-- Populated by JS -->
+            </div>
+            <button id="chatbot-clear-history-btn" class="btn btn-secondary" style="width:100%; margin-top:auto; padding:8px; font-size:12px; border:1px solid var(--border-solid);">
+              <i class="fas fa-trash-alt"></i> Clear Chat
+            </button>
+          </div>
+          
+          <div class="chatbot-main">
+            <div class="chatbot-header">
+              <div class="chatbot-header-info" style="display:flex; align-items:center; gap:12px;">
+                <div class="chat-avatar" style="background:var(--accent-primary); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white;"><i class="fas fa-robot"></i></div>
+                <div>
+                  <h3 style="margin:0; font-size:16px;">AI Doubt Solver</h3>
+                  <p style="margin:0; font-size:12px; color:var(--text-muted);">Ask academic doubts, clarify syllabus concepts, or request mock questions</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="chatbot-messages" id="chatbot-messages-container">
+              <div class="chat-message assistant">
+                <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+                <div class="chat-bubble">
+                  <p>Hello! I am your AI Study Assistant. I can clarify doubts, explain topics in your syllabus, or write custom practice questions. What are you studying today?</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="chatbot-quick-tags">
+              <button class="quick-tag" onclick="ChatbotManager.sendQuickTag('Explain the Feynman Technique')">Feynman Technique</button>
+              <button class="quick-tag" onclick="ChatbotManager.sendQuickTag('Give me study tips for Hard topics')">Study Tips</button>
+              <button class="quick-tag" onclick="ChatbotManager.sendQuickTag('Give me a quick practice question')">Practice Question</button>
+            </div>
+            
+            <form class="chatbot-input-area" id="chatbot-input-form">
+              <input type="text" id="chatbot-user-input" placeholder="Type your academic question or doubt here..." required autocomplete="off">
+              <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
     </main>
 
   </div>
@@ -1037,6 +1090,7 @@
   <!-- ================= JAVASCRIPT LOADING ================= -->
   <!-- Seed configurations first -->
   <script src="js/db.js"></script>
+  <script src="js/api.js"></script>
   <!-- UI Components / Managers -->
   <script src="js/reminders.js"></script>
   <script src="js/syllabus.js"></script>
@@ -1045,6 +1099,7 @@
   <script src="js/notes.js"></script>
   <script src="js/analytics.js"></script>
   <script src="js/examspace.js"></script>
+  <script src="js/chatbot.js"></script>
   <!-- Main Coordinator last -->
   <script src="js/app.js"></script>
 

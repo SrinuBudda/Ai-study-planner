@@ -587,10 +587,38 @@ const StorageManager = {
   save(key, val) {
     try {
       localStorage.setItem(this.PREFIX + key, JSON.stringify(val));
+      
+      // Async background mirroring back to MySQL if ApiClient is active
+      if (window.ApiClient && window.ApiClient.isActive && window.ApiClient.currentUser) {
+        this.syncToBackend(key, val);
+      }
       return true;
     } catch (e) {
       console.error("LocalStorage save error: ", e);
       return false;
+    }
+  },
+
+  async syncToBackend(key, val) {
+    try {
+      if (key.startsWith("syllabus_")) {
+        const exam = key.substring("syllabus_".length);
+        await window.ApiClient.saveSyllabus(exam, val);
+      } else if (key.startsWith("plan_")) {
+        const exam = key.substring("plan_".length);
+        await window.ApiClient.saveStudyPlan(exam, val);
+      } else if (key.startsWith("exam_date_")) {
+        const exam = key.substring("exam_date_".length);
+        await window.ApiClient.saveExamDate(exam, val);
+      } else if (key.startsWith("notes_")) {
+        const exam = key.substring("notes_".length);
+        const subjects = Object.keys(val);
+        for (const sub of subjects) {
+          await window.ApiClient.saveNote(exam, sub, val[sub]);
+        }
+      }
+    } catch (err) {
+      console.error("Background sync failed for key " + key + ":", err);
     }
   },
 
@@ -626,7 +654,12 @@ const UserManager = {
     ]);
   },
 
-  register(name, email, password) {
+  async register(name, email, password) {
+    if (window.ApiClient && window.ApiClient.isActive) {
+      const res = await window.ApiClient.register(name, email, password);
+      return res;
+    }
+
     const users = this.getUsers();
     if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
       return { success: false, message: "Email is already registered!" };
@@ -636,7 +669,17 @@ const UserManager = {
     return { success: true };
   },
 
-  authenticate(email, password) {
+  async authenticate(email, password) {
+    if (window.ApiClient && window.ApiClient.isActive) {
+      const res = await window.ApiClient.login(email, password);
+      if (res.success) {
+        StorageManager.save("current_user", { id: res.user.id, name: res.user.name, email: res.user.email });
+        // Perform initial pull of all tables from MySQL to localStorage
+        await window.ApiClient.syncAllFromBackend();
+      }
+      return res;
+    }
+
     const users = this.getUsers();
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
     if (user) {

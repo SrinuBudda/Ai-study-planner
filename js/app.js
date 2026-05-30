@@ -38,6 +38,7 @@ const AppManager = {
     }
     if (window.AnalyticsManager) window.AnalyticsManager.init();
     if (window.ExamSpaceManager) window.ExamSpaceManager.loadHistory();
+    if (window.ChatbotManager) window.ChatbotManager.init();
 
     // Start UI
     this.initCountdown();
@@ -76,12 +77,12 @@ const AppManager = {
     }
 
     if (formLogin) {
-      formLogin.addEventListener('submit', (e) => {
+      formLogin.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
-        const res = window.UserManager.authenticate(email, password);
+        const res = await window.UserManager.authenticate(email, password);
         if (res.success) {
           document.getElementById('auth-container').classList.add('hidden');
           document.getElementById('main-app').style.display = 'flex';
@@ -107,6 +108,7 @@ const AppManager = {
           }
           if (window.AnalyticsManager) window.AnalyticsManager.init();
           if (window.ExamSpaceManager) window.ExamSpaceManager.loadHistory();
+          if (window.ChatbotManager) window.ChatbotManager.init();
 
           this.initCountdown();
           this.updateDashboardWidgets();
@@ -119,15 +121,15 @@ const AppManager = {
     }
 
     if (formSignup) {
-      formSignup.addEventListener('submit', (e) => {
+      formSignup.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('signup-name').value.trim();
         const email = document.getElementById('signup-email').value.trim();
         const password = document.getElementById('signup-password').value;
 
-        const regRes = window.UserManager.register(name, email, password);
+        const regRes = await window.UserManager.register(name, email, password);
         if (regRes.success) {
-          const authRes = window.UserManager.authenticate(email, password);
+          const authRes = await window.UserManager.authenticate(email, password);
           if (authRes.success) {
             document.getElementById('auth-container').classList.add('hidden');
             document.getElementById('main-app').style.display = 'flex';
@@ -152,6 +154,7 @@ const AppManager = {
             }
             if (window.AnalyticsManager) window.AnalyticsManager.init();
             if (window.ExamSpaceManager) window.ExamSpaceManager.loadHistory();
+            if (window.ChatbotManager) window.ChatbotManager.init();
 
             this.initCountdown();
             this.updateDashboardWidgets();
@@ -165,8 +168,8 @@ const AppManager = {
     }
 
     if (demoBtn) {
-      demoBtn.addEventListener('click', () => {
-        const res = window.UserManager.authenticate("demo@study.com", "password123");
+      demoBtn.addEventListener('click', async () => {
+        const res = await window.UserManager.authenticate("demo@study.com", "password123");
         if (res.success) {
           document.getElementById('auth-container').classList.add('hidden');
           document.getElementById('main-app').style.display = 'flex';
@@ -191,6 +194,7 @@ const AppManager = {
           }
           if (window.AnalyticsManager) window.AnalyticsManager.init();
           if (window.ExamSpaceManager) window.ExamSpaceManager.loadHistory();
+          if (window.ChatbotManager) window.ChatbotManager.init();
 
           this.initCountdown();
           this.updateDashboardWidgets();
@@ -491,6 +495,7 @@ const AppManager = {
             "papers": "Previous Year Papers",
             "analytics": "Study Analytics & Metrics",
             "examspace": "Simulated Exam Space",
+            "chatbot": "AI Doubt Solver",
             "settings": "Planner Settings"
           };
           headerTitle.textContent = names[view] || "AI Study Planner";
@@ -515,6 +520,9 @@ const AppManager = {
         if (view === 'examspace' && window.ExamSpaceManager) {
           window.ExamSpaceManager.loadExamSpace();
         }
+        if (view === 'chatbot' && window.ChatbotManager) {
+          window.ChatbotManager.loadChatbot();
+        }
       });
     });
   },
@@ -532,6 +540,9 @@ const AppManager = {
     if (window.ExamSpaceManager) {
       window.ExamSpaceManager.loadHistory();
       window.ExamSpaceManager.renderConfigurator();
+    }
+    if (window.ChatbotManager) {
+      window.ChatbotManager.loadHistory();
     }
 
     // Reset countdowns
